@@ -32,6 +32,7 @@ class DbProvider(BaseModel):
     menu_links_db: Collection
     main_sliders_db: Collection
     bonuses_levels_db: Collection
+    bots_db: Collection
 
     class Config:
         arbitrary_types_allowed = True
@@ -63,6 +64,7 @@ def setup_db_main() -> DbProvider:
                 menu_links_db = db_main["menu_links"],
                 main_sliders_db = db_main["main_sliders"],
                 bonuses_levels_db = db_main["bonuses_levels"],
+                bots_db = db_main["bots"]
             )
     return db_provider
 

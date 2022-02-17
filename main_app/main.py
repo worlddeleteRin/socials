@@ -14,6 +14,8 @@ from apps.orders import router as orders_router
 from apps.cart import router as cart_router
 from apps.coupons import router as coupons_router
 from apps.site import router as site_router
+from apps.bots import router as bots_router
+
 from apps.cart.cart import create_session_id
 # eof routes importing
 from dependencies import get_api_app_client
@@ -49,6 +51,7 @@ app.include_router(orders_router.router)
 app.include_router(cart_router.router)
 app.include_router(coupons_router.router)
 app.include_router(site_router.router)
+app.include_router(bots_router.router)
 
 @app.on_event('startup')
 async def startup_db_client():
