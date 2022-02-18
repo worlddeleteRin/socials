@@ -49,3 +49,20 @@ class Bot(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+
+class BotSearch(BaseModel):
+    """
+        Base bot search model
+    """
+    bots: list[Bot]
+    total: int = 0
+    # TODO: implement in future
+    # filter_values: list[FilterValue]
+
+class BotSearchQuery:
+    def __init__(
+        self,
+        limit: int = 10
+    ):
+        self.limit = limit
+
