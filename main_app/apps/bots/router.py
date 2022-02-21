@@ -18,6 +18,17 @@ def get_bots_request(
     botSearch: BotSearch = get_bots(query)
     return botSearch
 
+# TODO: remove further?
+@router.get("/testfilters")
+def testfilters_get_bots_request(
+    admin_user = Depends(get_current_admin_user),
+    query: BotSearchQuery = Depends()
+):
+    return {
+        "handled": query.__dict__,
+        "to_apply": query.collect_db_filters_query()
+    }
+
 @router.get("/{id}", response_model = Bot)
 def get_bot_request(
     id: UUID4,

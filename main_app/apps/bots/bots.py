@@ -8,8 +8,10 @@ def get_bots(
 ):
     botsTotal = db_provider.bots_db.count_documents({})
 
-    botsCursor: Cursor = db_provider.bots_db.find({
-    }).limit(query.limit)
+    bot_filters: dict = query.collect_db_filters_query()
+    botsCursor: Cursor = db_provider.bots_db.find(
+        bot_filters
+    ).skip(query.offset).limit(query.limit)
 
     bots: list[Bot] = [Bot(**bot) for bot in botsCursor]
     botSearch = BotSearch(

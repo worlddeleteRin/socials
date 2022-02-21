@@ -1,13 +1,26 @@
 import uuid
+from enum import Enum, unique
 from pydantic import BaseModel, UUID4, Field
 from datetime import datetime
 
 from pymongo.results import InsertOneResult
 from apps.site.utils import get_time_now
-from typing import Optional
+from typing import Optional, Union
 
 from database.main_db import db_provider
 from pymongo import ReturnDocument
+
+from utils.checks import can_be_numeric
+
+@unique
+class PlatformEnum(str, Enum):
+    vk = "vk"
+    instagram = "instagram"
+
+@unique
+class GenderEnum(str, Enum):
+    male = "male"
+    female = "female"
 
 class Bot(BaseModel):
     """
@@ -26,6 +39,8 @@ class Bot(BaseModel):
     like_count: int = 0
     reply_count: int = 0
     comment_count: int = 0
+    platform: Optional[PlatformEnum] = None
+    gender: Optional[GenderEnum] = None
 
     def save_db(self) -> InsertOneResult | None:
         inserted_bot: InsertOneResult = db_provider.bots_db.insert_one(self.dict(by_alias=True)
@@ -60,9 +75,43 @@ class BotSearch(BaseModel):
     # filter_values: list[FilterValue]
 
 class BotSearchQuery:
+    limit: int
+    offset: int
+    is_active: int | str | None
+    is_in_use: int | str | None
+    platform: PlatformEnum | None
+    gender: GenderEnum | None
     def __init__(
         self,
-        limit: int = 10
+        platform: PlatformEnum = None,
+        gender: GenderEnum = None,
+        limit: int = 10,
+        offset: int = 0,
+        is_active: Union[int,str] = None,
+        is_in_use: Union[int,str] = None,
     ):
         self.limit = limit
+        self.offset = offset
+        self.is_active = is_active
+        self.is_in_use = is_in_use
+        self.platform = platform
+        self.gender = gender
+
+    def collect_db_filters_query(self) -> dict:
+        filters = {}
+
+        if (self.is_active is not None) and can_be_numeric(self.is_active):
+            filters['is_active'] = bool(self.is_active)
+
+        if self.is_in_use is not None and can_be_numeric(self.is_in_use):
+            filters['is_in_use'] = bool(self.is_in_use)
+
+        if (self.platform is not None and self.platform in list(PlatformEnum)):
+            filters['platform'] = self.platform
+
+        if self.gender is not None and (self.gender in list(GenderEnum)):
+            filters['gender'] = self.gender
+
+        return filters
+
 
