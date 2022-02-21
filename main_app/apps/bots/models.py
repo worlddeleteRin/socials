@@ -77,7 +77,7 @@ class BotSearch(BaseModel):
 class BotSearchQuery:
     limit: int
     offset: int
-    is_active: int | str | None
+    is_active: int | None
     is_in_use: int | str | None
     platform: PlatformEnum | None
     gender: GenderEnum | None
@@ -87,7 +87,7 @@ class BotSearchQuery:
         gender: GenderEnum = None,
         limit: int = 10,
         offset: int = 0,
-        is_active: Union[int,str] = None,
+        is_active: int = None,
         is_in_use: Union[int,str] = None,
     ):
         self.limit = limit
@@ -100,16 +100,16 @@ class BotSearchQuery:
     def collect_db_filters_query(self) -> dict:
         filters = {}
 
-        if (self.is_active is not None) and can_be_numeric(self.is_active):
+        if (self.is_active is not None):
             filters['is_active'] = bool(self.is_active)
 
-        if self.is_in_use is not None and can_be_numeric(self.is_in_use):
+        if self.is_in_use is not None: 
             filters['is_in_use'] = bool(self.is_in_use)
 
-        if (self.platform is not None and self.platform in list(PlatformEnum)):
+        if self.platform is not None:
             filters['platform'] = self.platform
 
-        if self.gender is not None and (self.gender in list(GenderEnum)):
+        if self.gender is not None:
             filters['gender'] = self.gender
 
         return filters
