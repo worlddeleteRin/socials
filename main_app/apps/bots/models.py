@@ -22,6 +22,18 @@ class GenderEnum(str, Enum):
     male = "male"
     female = "female"
 
+class BotCreate(BaseModel):
+    """
+        Bot create model
+    """
+    username: str
+    password: str
+    access_token: str = ""
+    is_active: bool = True
+    is_in_use: bool = False
+    platform: PlatformEnum
+    gender: GenderEnum
+
 class Bot(BaseModel):
     """
         Base bot account model
@@ -49,17 +61,17 @@ class Bot(BaseModel):
 
     def update_db(self):
         updated_bot = db_provider.bots_db.find_one_and_update(
-            {"_id": self.id},
+            {"id": self.id},
             {"$set": self.dict(by_alias=True)},
             return_document=ReturnDocument.AFTER
         )
-        if updated_bot and updated_bot.dict():
-            return Bot(**updated_bot.dict())
+        if updated_bot:
+            return Bot(**updated_bot)
         return None
 
     def remove_db(self):
-        db_provider.carts_db.remove(
-            {"_id": self.id},
+        db_provider.bots_db.remove(
+            {"id": self.id},
         )
 
     class Config:
@@ -78,7 +90,7 @@ class BotSearchQuery:
     limit: int
     offset: int
     is_active: int | None
-    is_in_use: int | str | None
+    is_in_use: int | None
     platform: PlatformEnum | None
     gender: GenderEnum | None
     def __init__(
@@ -88,7 +100,7 @@ class BotSearchQuery:
         limit: int = 10,
         offset: int = 0,
         is_active: int = None,
-        is_in_use: Union[int,str] = None,
+        is_in_use: int = None,
     ):
         self.limit = limit
         self.offset = offset
