@@ -18,3 +18,4 @@ pyrightconfig.json
 **/static/
 imports
 exports
+.DS_Store
