@@ -15,6 +15,7 @@ from apps.cart import router as cart_router
 from apps.coupons import router as coupons_router
 from apps.site import router as site_router
 from apps.bots import router as bots_router
+from apps.bots_tasks import router as bots_tasks_router
 
 from apps.cart.cart import create_session_id
 # eof routes importing
@@ -52,6 +53,7 @@ app.include_router(cart_router.router)
 app.include_router(coupons_router.router)
 app.include_router(site_router.router)
 app.include_router(bots_router.router)
+app.include_router(bots_tasks_router.router)
 
 @app.on_event('startup')
 async def startup_db_client():

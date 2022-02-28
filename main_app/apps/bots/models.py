@@ -10,8 +10,6 @@ from typing import Optional, Union
 from database.main_db import db_provider
 from pymongo import ReturnDocument
 
-from utils.checks import can_be_numeric
-
 @unique
 class PlatformEnum(str, Enum):
     vk = "vk"
