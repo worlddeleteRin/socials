@@ -111,6 +111,8 @@ class BotTask(BaseModel):
         Base bot account model
     """
     id: UUID4 = Field(default_factory=uuid.uuid4, alias="_id")
+    created_date: datetime = Field(default_factory=get_time_now)
+    updated_date: datetime = Field(default_factory=get_time_now)
     title: str = ""
     platform: Optional[PlatformEnum] = None
     task_type: TaskTypeEnum = TaskTypeEnum.dummy
