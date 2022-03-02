@@ -1,3 +1,4 @@
+from apps.bots_tasks.like_post.like_post import process_like_post_task
 from database.main_db import db_provider
 from .models import *
 from .bots_tasks_exceptions import *
@@ -61,22 +62,37 @@ def update_bot_task(
 def bot_task_check_need_run(
     bot_task: BotTask
 ):
-    pass
-    # if bot_task.
+    """
+    Check, if bot task need to run
+    Task will not run if:
+        - task status is not 'running'
+        - task not is_active
+        - if next_run_timestamp is not None and time not
+        come yet
+    """
+    # check status & active
+    if ((not bot_task.status == BotTaskStatusEnum.running) or 
+        (not bot_task.is_active)):
+        return False
+    # check, if time come
+    if ((not bot_task.next_run_timestamp is None) and
+        (bot_task.next_run_timestamp)):
+        return False
+    return True
+
 
 def process_bot_task(
     bot_task: BotTask
 ):
     # TODO add logging?
-    # check if bot need to run task
     """
         Call function that responsbile for
         task processing, that function should
-            - count how much of task need to be run
-            - set bots that will make that task
-            - call platform plugin, paste task bots 
-            make actual task
-            - update metrics, both task | bot
-            - ?
+            - check if bot need to run task
+            - run task according task type
     """
-    print('run process bot task')
+    # check, if need to run task
+    if not bot_task_check_need_run(bot_task):
+        return False
+    if bot_task.task_type == TaskTypeEnum.like_post:
+        process_like_post_task(bot_task)
