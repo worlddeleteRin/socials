@@ -58,7 +58,25 @@ def update_bot_task(
     bot_task = bot_task.copy(update=new_task.dict())
     bot_task.update_db()
 
+def bot_task_check_need_run(
+    bot_task: BotTask
+):
+    pass
+    # if bot_task.
 
-
-
-    
+def process_bot_task(
+    bot_task: BotTask
+):
+    # TODO add logging?
+    # check if bot need to run task
+    """
+        Call function that responsbile for
+        task processing, that function should
+            - count how much of task need to be run
+            - set bots that will make that task
+            - call platform plugin, paste task bots 
+            make actual task
+            - update metrics, both task | bot
+            - ?
+    """
+    print('run process bot task')

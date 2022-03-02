@@ -51,7 +51,6 @@ class LikePostTargetData(BaseModel):
     def validate_like_post_target_data(cls, values):
         work_lag = values.get('work_lag')
         date_finish = values.get('date_finish')
-        print('values are', values)
 
         if not isinstance(work_lag, WorkLagEnum):
             raise ValueError('incorrect work_lag value')
@@ -88,8 +87,6 @@ class CreateBotTask(BaseModel):
     def validate_create_bot(cls, values):
         task_type = values.get('task_type')
         task_target_data = values.get('task_target_data')
-        print('values are', values)
-
         if not isinstance(task_type, TaskTypeEnum):
             raise ValueError('provide correct task_type')
         if not isinstance(task_target_data, TaskTargetData):
@@ -111,11 +108,16 @@ class BotTask(BaseModel):
         Base bot account model
     """
     id: UUID4 = Field(default_factory=uuid.uuid4, alias="_id")
+    is_active: bool = True
+    is_finished: bool = False
+    has_error: bool = False
     created_date: datetime = Field(default_factory=get_time_now)
     updated_date: datetime = Field(default_factory=get_time_now)
+    next_run_timestamp: Optional[int] = None
     title: str = ""
     platform: Optional[PlatformEnum] = None
     task_type: TaskTypeEnum = TaskTypeEnum.dummy
+    error_msg: str = ""
     task_target_data: TaskTargetData
 
     def save_db(self) -> InsertOneResult | None:
@@ -153,17 +155,27 @@ class BotTasksSearchQuery:
     limit: int = 10
     platform: PlatformEnum | None
     task_type: TaskTypeEnum | None
+    is_active: bool | None
+    is_finished: bool | None
+    has_error: bool | None
+
     def __init__(
         self,
         skip: int = 0,
         limit: int =10,
         platform: PlatformEnum = None,
-        task_type: TaskTypeEnum = None
+        task_type: TaskTypeEnum = None,
+        is_active: bool = None,
+        is_finished: bool = None,
+        has_error: bool = None
     ):
         self.skip = skip
         self.limit = limit
         self.platform = platform
         self.task_type = task_type
+        self.is_active = is_active
+        self.is_finished = is_finished
+        self.has_error = has_error 
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -172,6 +184,12 @@ class BotTasksSearchQuery:
             filters['platform'] = self.platform
         if (self.task_type):
             filters['task_type'] = self.task_type
+        if (self.is_active):
+            filters['is_active'] = self.is_active
+        if (self.is_finished):
+            filters['is_finished'] = self.is_finished
+        if (self.has_error):
+            filters['has_error'] = self.has_error
 
         return filters
 
