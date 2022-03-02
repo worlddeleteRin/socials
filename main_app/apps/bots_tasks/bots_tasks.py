@@ -2,6 +2,8 @@ from apps.bots_tasks.like_post.like_post import process_like_post_task
 from database.main_db import db_provider
 from .models import *
 from .bots_tasks_exceptions import *
+from apps.bots.models import BotSearchQuery, Bot
+from apps.bots.bots import get_bots
 
 
 def get_bot_tasks(
@@ -96,3 +98,4 @@ def process_bot_task(
         return False
     if bot_task.task_type == TaskTypeEnum.like_post:
         process_like_post_task(bot_task)
+

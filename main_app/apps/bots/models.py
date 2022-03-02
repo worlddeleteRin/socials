@@ -91,6 +91,7 @@ class BotSearchQuery:
     is_in_use: int | None
     platform: PlatformEnum | None
     gender: GenderEnum | None
+    exclude_by_ids: list[UUID4]
     def __init__(
         self,
         platform: PlatformEnum = None,
@@ -99,6 +100,7 @@ class BotSearchQuery:
         offset: int = 0,
         is_active: int = None,
         is_in_use: int = None,
+        exclude_by_ids: list[UUID4] = []
     ):
         self.limit = limit
         self.offset = offset
@@ -106,6 +108,7 @@ class BotSearchQuery:
         self.is_in_use = is_in_use
         self.platform = platform
         self.gender = gender
+        self.exclude_by_ids = exclude_by_ids
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -121,6 +124,11 @@ class BotSearchQuery:
 
         if self.gender is not None:
             filters['gender'] = self.gender
+
+        if len(self.exclude_by_ids) > 0:
+            filters['id'] = {
+                '$nin': self.exclude_by_ids
+            }
 
         return filters
 

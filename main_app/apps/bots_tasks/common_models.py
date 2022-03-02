@@ -4,6 +4,9 @@ from datetime import datetime
 class TaskDateFinish(BaseModel):
     date: datetime
 
+    """
     @staticmethod
-    def from_work_lag_enum():
+    def from_work_lag_enum(
+    ):
         pass
+    """

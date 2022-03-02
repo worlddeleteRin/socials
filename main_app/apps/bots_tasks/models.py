@@ -77,6 +77,7 @@ class BotTask(BaseModel):
     error_msg: str = ""
     task_result_metrics: TaskResultMetrics = TaskResultMetrics()
     task_target_data: TaskTargetData
+    bots_used: list[UUID4] = []
 
     def save_db(self) -> InsertOneResult | None:
         inserted_bot: InsertOneResult = db_provider.bots_tasks_db.insert_one(self.dict(by_alias=True)

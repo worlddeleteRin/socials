@@ -1,5 +1,8 @@
+from apps.bots.bots import get_bots
+from apps.bots.models import Bot, BotSearch, BotSearchQuery
 from apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
 from apps.bots_tasks.models import BotTask
+from apps.bots_tasks.utils import get_time_left_delimeter_from_timestamp
 
 
 def process_like_post_task(
@@ -18,7 +21,23 @@ def process_like_post_task(
     need_like_total: int = data.like_count
     liked: int =  metrics.like_count
     # get time delimeter
-
-    # count how much tasks need to be done
-    # count how much bots need for task
+    time_delimeter: int = get_time_left_delimeter_from_timestamp(
+        int(data.date_finish.date.timestamp())
+    )
+    # count need process now 
+    process_now_count = int((need_like_total - liked) / time_delimeter)
+    # define bots search filters
+    bot_filter_query = BotSearchQuery(
+        is_active = True,
+        is_in_use = True,
+        limit = process_now_count,
+        platform = bot_task.platform,
+        exclude_by_ids = bot_task.bots_used,
+    )
+    # get bots for task 
+    bot_search: BotSearch = get_bots(bot_filter_query)
+    bots: list[Bot] = bot_search.bots
+    print('time delimeter is', time_delimeter)
+    print('need process now:', process_now_count)
+    print('bots for task are', bots)
     print('run process like post task')

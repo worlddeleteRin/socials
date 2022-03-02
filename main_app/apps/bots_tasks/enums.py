@@ -29,3 +29,8 @@ class WorkLagEnum(str, Enum):
     one_week = '1 week'
     one_month = 'one month' 
     custom_date = 'Custom date'
+
+    @staticmethod
+    def to_timestamp(lag: str):
+        if lag == WorkLagEnum.one_minute:
+            return 60

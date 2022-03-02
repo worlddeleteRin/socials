@@ -74,5 +74,3 @@ def create_bot(bot: BotCreate) -> dict:
         "success": True
     }
 
-
-
