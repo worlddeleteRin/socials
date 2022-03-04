@@ -18,4 +18,6 @@ pyrightconfig.json
 **/static/
 imports
 exports
+vk_core
 .DS_Store
+
