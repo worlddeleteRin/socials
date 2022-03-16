@@ -2,10 +2,12 @@ from apps.bots.bots import get_bots
 from apps.bots.models import Bot, BotSearch, BotSearchQuery, PlatformEnum
 from apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
 from apps.bots_tasks.models import BotTask
-from apps.bots_tasks.task_errors import NoBotsForTaskError
-from apps.bots_tasks.utils import get_time_left_delimeter_from_timestamp
+from apps.bots_tasks.task_errors import NoBotsForTaskError, VkErrorGetWallPost, VkErrorPostUrl
+from apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
 # from ..vk_core.client import VkClient
 from vk_core.client import VkClient
+from vk_core.likes.likes import AddLikeQuery, LikeTargetEnum, Likes
+from vk_core.wall.wall import VkPost, VkWall, WallPostGetByIdQuery
 
 def like_post_vk(
     bots: list[Bot],
@@ -14,7 +16,39 @@ def like_post_vk(
 ):
     print('run like post vk')
     # check if can get wall post
-    # add error to task if not TODO
+    if not bot_task.task_target_data.like_post:
+        bot_task.setError(VkErrorGetWallPost)
+        return
+    link = bot_task.task_target_data.like_post.post_link
+    postUrlInfo = VkWall.getOwnerItemIdsFromUrl(
+        link
+    )
+    if not postUrlInfo:
+        bot_task.setError(VkErrorPostUrl)
+        return
+
+    defaultClient = VkClient(
+        access_token = bots[0].access_token
+    )
+    wall = VkWall(client = defaultClient, owner_id = int(postUrlInfo[0]))
+    postQuery = WallPostGetByIdQuery(
+        posts = f"{postUrlInfo[0]}_{postUrlInfo[1]}"
+    )
+    print('wall is', wall.__dict__)
+    print('post url info is', postUrlInfo)
+    try:
+        currentPost: VkPost = wall.getById(query = postQuery)[0]
+    except Exception as e:
+        print('error get post', e)
+        bot_task.setError(VkErrorGetWallPost)
+        return
+    likeQuery = AddLikeQuery(
+        type = LikeTargetEnum.post,
+        owner_id = wall.owner_id,
+        item_id = currentPost.id
+    )
+    print('post is', currentPost)
+    print('like Query is', likeQuery)
     for bot in bots:
         # set up client
         client = VkClient(
@@ -22,7 +56,11 @@ def like_post_vk(
         )
         print('client is', client)
         # try to like post TODO
+        response = Likes(client = client).add(query = likeQuery)
+        print('response is', response)
+        bot_task.bots_used.append(bot.id)
         # add metrics TODO
+        # add bot to used TODO
 
 def process_like_post_task(
     bot_task: BotTask
@@ -44,10 +82,12 @@ def process_like_post_task(
     already_liked: int =  metrics.like_count
     # get time delimeter
     time_delimeter: int = get_time_left_delimeter_from_timestamp(
-        int(data.date_finish.date.timestamp())
+        data.date_finish.int_timestamp()
     )
     # count need process now 
     process_now_count = int((need_like_total - already_liked) / time_delimeter)
+    if process_now_count < 1:
+        process_now_count = 1
     # define bots search filters
     bot_filter_query = BotSearchQuery(
         is_active = True,
@@ -61,13 +101,13 @@ def process_like_post_task(
     bots: list[Bot] = bot_search.bots
     # check if not bots stop task attach error
     if len(bots) == 0:
-        bot_task.error = NoBotsForTaskError
+        bot_task.setError(NoBotsForTaskError)
         bot_task.update_db()
         return
     # 
     print('time delimeter is', time_delimeter)
     print('need process now:', process_now_count)
-    print('bots for task are', bots)
+    # wall print('bots for task are', bots)
     print('bots len is ', len(bots))
     print('run process like post task')
     # run task based on platform type
@@ -77,3 +117,24 @@ def process_like_post_task(
             like_count = process_now_count,
             bot_task = bot_task
         )
+        bot_task.update_db()
+    if not bot_task.isRunning():
+        return
+
+    # get fresh data TODO: can be improved
+    data: LikePostTargetData = bot_task.task_target_data.like_post
+    metrics: LikePostResultMetrics = bot_task.task_result_metrics.like_post
+
+    need_like_total: int = data.like_count
+    already_liked: int =  metrics.like_count
+
+    # calculate next time need run TODO
+    next_time_run = calculate_next_time_run(
+        time_end = data.date_finish.int_timestamp(),
+        need_make = need_like_total - already_liked,
+    )
+    bot_task.next_run_timestamp = next_time_run
+    # update bot db
+    bot_task.update_db()
+    # ?
+

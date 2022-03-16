@@ -53,3 +53,20 @@ def get_datetime_from_work_lag(
     date = datetime.fromtimestamp(final_timestamp)
     return date
 
+def calculate_next_time_run(
+    # int timestamp of date finish
+    time_end: int,
+    # how much count need to make more
+    need_make: int
+) -> int:
+    now = get_time_now_timestamp()
+    if now > time_end:
+        return now
+    process_time = time_end - now
+    time_per_task = process_time / need_make
+    next_time = now + time_per_task
+    if next_time > time_end:
+        return int(time_end)
+    return int(next_time)
+    
+

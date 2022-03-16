@@ -10,3 +10,6 @@ class TaskDateFinish(BaseModel):
     ):
         pass
     """
+    def int_timestamp(self):
+        return int(self.date.timestamp())
+

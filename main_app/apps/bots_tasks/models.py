@@ -15,6 +15,7 @@ from apps.bots_tasks.enums import *
 
 class BotTaskError(BaseModel):
     error_msg: str = ''
+    detail_msg: str = ''
 
 class TaskTargetData(BaseModel):
     """
@@ -82,6 +83,19 @@ class BotTask(BaseModel):
     task_target_data: TaskTargetData
     bots_used: list[UUID4] = []
 
+    def setError(self, error: BotTaskError):
+        self.error = error
+        self.status = BotTaskStatusEnum.error
+        self.is_active = False
+    def hasError(self):
+        if self.error:
+            return True
+        return False
+    def isRunning(self):
+        return (
+            self.status is BotTaskStatusEnum.running and
+            self.is_active
+        )
     def isFinished(self):
         return self.status is BotTaskStatusEnum.finished
 
