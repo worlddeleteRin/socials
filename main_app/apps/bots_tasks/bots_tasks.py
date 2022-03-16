@@ -78,7 +78,7 @@ def bot_task_check_need_run(
         return False
     # check, if time come
     if ((not bot_task.next_run_timestamp is None) and
-        (bot_task.next_run_timestamp)):
+        (bot_task.next_run_timestamp > get_time_now().timestamp())):
         return False
     return True
 

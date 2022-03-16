@@ -1,10 +1,10 @@
 import uuid
-from enum import Enum, unique
+# from enum import Enum, unique
 from datetime import datetime
 from apps.site.utils import get_time_now
 from pymongo.results import InsertOneResult
-from pydantic import BaseModel, Field, UUID4, validator, ValidationError, root_validator
-from typing import Optional, Union
+from pydantic import BaseModel, Field, UUID4, root_validator
+from typing import Optional
 
 from database.main_db import db_provider
 from pymongo import ReturnDocument
@@ -12,7 +12,10 @@ from pymongo import ReturnDocument
 from apps.bots.models import PlatformEnum
 from apps.bots_tasks.like_post.models import *
 from apps.bots_tasks.enums import *
-        
+
+class BotTaskError(BaseModel):
+    error_msg: str = ''
+
 class TaskTargetData(BaseModel):
     """
     Task target data model
@@ -74,10 +77,13 @@ class BotTask(BaseModel):
     title: str = ""
     platform: Optional[PlatformEnum] = None
     task_type: TaskTypeEnum = TaskTypeEnum.dummy
-    error_msg: str = ""
+    error: Optional[BotTaskError] = None
     task_result_metrics: TaskResultMetrics = TaskResultMetrics()
     task_target_data: TaskTargetData
     bots_used: list[UUID4] = []
+
+    def isFinished(self):
+        return self.status is BotTaskStatusEnum.finished
 
     def save_db(self) -> InsertOneResult | None:
         inserted_bot: InsertOneResult = db_provider.bots_tasks_db.insert_one(self.dict(by_alias=True)
@@ -121,10 +127,10 @@ class BotTasksSearchQuery:
         self,
         skip: int = 0,
         limit: int = 10,
-        platform: PlatformEnum = None,
-        task_type: TaskTypeEnum = None,
-        is_active: bool = None,
-        status: BotTaskStatusEnum = None
+        platform: Optional[PlatformEnum] = None,
+        task_type: Optional[TaskTypeEnum] = None,
+        is_active: Optional[bool] = None,
+        status: Optional[BotTaskStatusEnum] = None
     ):
         self.skip = skip
         self.limit = limit

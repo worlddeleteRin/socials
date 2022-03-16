@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pymongo.results import InsertOneResult
 from apps.site.utils import get_time_now
-from typing import Optional, Union
+from typing import Optional
 
 from database.main_db import db_provider
 from pymongo import ReturnDocument
