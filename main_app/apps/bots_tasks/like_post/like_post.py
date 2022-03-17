@@ -1,17 +1,21 @@
 from apps.bots.bots import get_bots
 from apps.bots.models import Bot, BotSearch, BotSearchQuery, PlatformEnum
+from apps.bots_events.models import BotEvent
+from apps.bots_tasks.enums import TaskTypeEnum
 from apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
-from apps.bots_tasks.models import BotTask
+from apps.bots_tasks.models import BotTask, BotTaskError
 from apps.bots_tasks.task_errors import NoBotsForTaskError, VkErrorGetWallPost, VkErrorPostUrl
 from apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
 # from ..vk_core.client import VkClient
 from vk_core.client import VkClient
-from vk_core.likes.likes import AddLikeQuery, LikeTargetEnum, Likes
+from vk_core.likes.likes import AddLikeQuery, IsLikedQuery, LikeTargetEnum, Likes
+from vk_core.likes.models import IsLikedResponse
 from vk_core.wall.wall import VkPost, VkWall, WallPostGetByIdQuery
 
 def like_post_vk(
     bots: list[Bot],
     like_count: int,
+    metrics: LikePostResultMetrics,
     bot_task: BotTask
 ):
     print('run like post vk')
@@ -42,12 +46,17 @@ def like_post_vk(
         print('error get post', e)
         bot_task.setError(VkErrorGetWallPost)
         return
+    isLikedQuery = IsLikedQuery(
+        type = LikeTargetEnum.post,
+        owner_id = wall.owner_id,
+        item_id = currentPost.id
+    )
     likeQuery = AddLikeQuery(
         type = LikeTargetEnum.post,
         owner_id = wall.owner_id,
         item_id = currentPost.id
     )
-    print('post is', currentPost)
+    print('post id kis', currentPost.id)
     print('like Query is', likeQuery)
     for bot in bots:
         # set up client
@@ -55,12 +64,35 @@ def like_post_vk(
             access_token = bot.access_token
         )
         print('client is', client)
-        # try to like post TODO
+        # check, if bot already like post
+        isLiked: IsLikedResponse = Likes(client = client).isLiked(
+            query = isLikedQuery
+        )
+        print('isLiked query is', isLiked)
+        if (isLiked.isLiked()):
+            bot_task.bots_used.append(bot.id)
+            continue
+
+        # try to like post
         response = Likes(client = client).add(query = likeQuery)
         print('response is', response)
-        bot_task.bots_used.append(bot.id)
-        # add metrics TODO
-        # add bot to used TODO
+        # add bot id to used
+        try:
+            bot_task.bots_used.append(bot.id)
+            # add metrics TODO
+            metrics.like_count += 1
+            # add bot event TODO
+            event = BotEvent(
+                event_type = TaskTypeEnum.like_post, 
+                platform = PlatformEnum.vk,
+                bot_id = bot.id,
+                task_id = bot_task.id,
+                count_amount = 1
+            )
+            event.save_db()
+        except Exception as e:
+            print('exception occured', e)
+            bot_task.setError(BotTaskError.dummy_error(e))
 
 def process_like_post_task(
     bot_task: BotTask
@@ -115,18 +147,25 @@ def process_like_post_task(
         like_post_vk(
             bots = bots,
             like_count = process_now_count,
+            metrics = metrics,
             bot_task = bot_task
         )
         bot_task.update_db()
     if not bot_task.isRunning():
         return
-
     # get fresh data TODO: can be improved
     data: LikePostTargetData = bot_task.task_target_data.like_post
     metrics: LikePostResultMetrics = bot_task.task_result_metrics.like_post
 
     need_like_total: int = data.like_count
     already_liked: int =  metrics.like_count
+
+    # check if task is completed
+    # set task finished if task completed
+    if already_liked >= need_like_total:
+        bot_task.setFinished()
+        bot_task.update_db()
+        return
 
     # calculate next time need run TODO
     next_time_run = calculate_next_time_run(

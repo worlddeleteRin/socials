@@ -4,7 +4,7 @@ from datetime import datetime
 from apps.site.utils import get_time_now
 from pymongo.results import InsertOneResult
 from pydantic import BaseModel, Field, UUID4, root_validator
-from typing import Optional
+from typing import Any, Optional
 
 from database.main_db import db_provider
 from pymongo import ReturnDocument
@@ -16,6 +16,10 @@ from apps.bots_tasks.enums import *
 class BotTaskError(BaseModel):
     error_msg: str = ''
     detail_msg: str = ''
+
+    @staticmethod
+    def dummy_error(msg: Any):
+        return BotTaskError(error_msg = f'{msg}')
 
 class TaskTargetData(BaseModel):
     """
@@ -83,19 +87,27 @@ class BotTask(BaseModel):
     task_target_data: TaskTargetData
     bots_used: list[UUID4] = []
 
+    def setFinished(self):
+        self.status = BotTaskStatusEnum.finished
+        self.is_active = False
+        self.next_run_timestamp = None
+
     def setError(self, error: BotTaskError):
         self.error = error
         self.status = BotTaskStatusEnum.error
         self.is_active = False
+
     def hasError(self):
         if self.error:
             return True
         return False
+
     def isRunning(self):
         return (
             self.status is BotTaskStatusEnum.running and
             self.is_active
         )
+
     def isFinished(self):
         return self.status is BotTaskStatusEnum.finished
 
