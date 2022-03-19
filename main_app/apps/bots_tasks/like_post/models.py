@@ -22,7 +22,12 @@ class LikePostTargetData(BaseModel):
         work_lag = values.get('work_lag')
         date_finish = values.get('date_finish')
 
-        if not isinstance(work_lag, WorkLagEnum):
+        if (
+            (not work_lag) and
+            (not date_finish)
+        ):
+            raise ValueError('Specify work_lag or date_finish')
+        if work_lag and (not isinstance(work_lag, WorkLagEnum)):
             raise ValueError('incorrect work_lag value')
         if work_lag == WorkLagEnum.custom_date:
             if not isinstance(date_finish, TaskDateFinish):

@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+from pydantic.class_validators import validator
+
+from apps.site.utils import get_time_now
+
 class TaskDateFinish(BaseModel):
     date: datetime
 
@@ -10,6 +14,11 @@ class TaskDateFinish(BaseModel):
     ):
         pass
     """
+    @validator('date', pre=True)
+    def check_date(cls, v):
+        if v == '':
+            return get_time_now()
+        return v
     def int_timestamp(self):
         return int(self.date.timestamp())
 
