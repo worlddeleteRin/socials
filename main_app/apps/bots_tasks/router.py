@@ -12,7 +12,7 @@ router = APIRouter(
     tags= ["bots_tasks"]
 )
 
-@router.get("/", response_model=BotTasksSearch)
+@router.get("/", response_model=BotTasksSearch, response_model_by_alias=False)
 def get_bots_tasks_request(
     admin_user = Depends(get_current_admin_user),
     query: BotTasksSearchQuery = Depends()
