@@ -20,6 +20,11 @@ class GenderEnum(str, Enum):
     male = "male"
     female = "female"
 
+@unique
+class BotSortByEnum(str, Enum):
+    created_time = 'created_time'
+    last_used = 'last_used'
+
 class BotCreate(BaseModel):
     """
         Bot create model
@@ -57,7 +62,12 @@ class Bot(BaseModel):
         )
         return inserted_bot or None
 
-    def update_db(self):
+    def update_db(
+            self,
+            update_used: bool = False
+        ):
+        if update_used:
+            self.last_used = get_time_now()
         updated_bot = db_provider.bots_db.find_one_and_update(
             {"id": self.id},
             {"$set": self.dict(by_alias=True)},
@@ -91,6 +101,8 @@ class BotSearchQuery:
     is_in_use: int | None
     platform: PlatformEnum | None
     gender: GenderEnum | None
+    sort_by: BotSortByEnum
+    sort_direction: int
     exclude_by_ids: list[UUID4]
     def __init__(
         self,
@@ -100,6 +112,8 @@ class BotSearchQuery:
         offset: int = 0,
         is_active: int = None,
         is_in_use: int = None,
+        sort_by: BotSortByEnum = BotSortByEnum.created_time,
+        sort_direction: int = -1,
         exclude_by_ids: list[UUID4] = []
     ):
         self.limit = limit
@@ -108,6 +122,8 @@ class BotSearchQuery:
         self.is_in_use = is_in_use
         self.platform = platform
         self.gender = gender
+        self.sort_by = sort_by
+        self.sort_direction = sort_direction
         self.exclude_by_ids = exclude_by_ids
 
     def collect_db_filters_query(self) -> dict:

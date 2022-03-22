@@ -27,7 +27,7 @@ def create_bot_task_request(
     create_bot_task(new_task)
     return simple_success_response()
 
-@router.get("/{id}")
+@router.get("/{id}", response_model=BotTask, response_model_by_alias=False)
 def get_bot_task_by_id_request(
     id: UUID4
 ):

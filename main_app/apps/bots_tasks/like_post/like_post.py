@@ -1,5 +1,5 @@
 from apps.bots.bots import get_bots
-from apps.bots.models import Bot, BotSearch, BotSearchQuery, PlatformEnum
+from apps.bots.models import Bot, BotSearch, BotSearchQuery, BotSortByEnum, PlatformEnum
 from apps.bots_events.models import BotEvent
 from apps.bots_tasks.enums import TaskTypeEnum
 from apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
@@ -90,6 +90,8 @@ def like_post_vk(
                 count_amount = 1
             )
             event.save_db()
+            # update bot last used
+            bot.update_db(update_used=True)
         except Exception as e:
             print('exception occured', e)
             bot_task.setError(BotTaskError.dummy_error(e))
@@ -126,6 +128,8 @@ def process_like_post_task(
         is_in_use = True,
         limit = process_now_count,
         platform = bot_task.platform,
+        sort_by = BotSortByEnum.last_used,
+        sort_direction = 1,
         exclude_by_ids = bot_task.bots_used,
     )
     # get bots for task 

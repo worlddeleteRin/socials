@@ -13,7 +13,7 @@ def get_bots(
     bot_filters: dict = query.collect_db_filters_query()
     botsCursor: Cursor = db_provider.bots_db.find(
         bot_filters
-    ).sort('created_time', -1).skip(query.offset).limit(query.limit)
+    ).sort(query.sort_by, query.sort_direction).skip(query.offset).limit(query.limit)
 
     bots: list[Bot] = [Bot(**bot) for bot in botsCursor]
     botSearch = BotSearch(
@@ -73,4 +73,8 @@ def create_bot(bot: BotCreate) -> dict:
     return {
         "success": True
     }
+
+def check_rate_limits(
+) -> bool:
+    return True
 

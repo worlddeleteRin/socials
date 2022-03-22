@@ -13,7 +13,7 @@ def get_bot_tasks(
     bot_tasks_total_count = db_provider.bots_tasks_db.count_documents({})
     bot_tasks_raw = db_provider.bots_tasks_db.find(
         filters
-    ).skip(query.skip).limit(query.limit)
+    ).skip(query.skip).limit(query.limit).sort('created_date', -1)
     bot_tasks: list[BotTask] = [BotTask(**task) for task in bot_tasks_raw]
     bot_tasks_search = BotTasksSearch(
         bot_tasks=bot_tasks,
@@ -56,10 +56,40 @@ def update_bot_task(
     new_task: CreateBotTask
 ):
     bot_task: BotTask | None = get_bot_task_by_id(id)
+
     if not bot_task:
         raise BotTaskNotFound()
+    # check if task is already finished & raise error
+    if bot_task.isFinished():
+        raise UpdateFinishedTaskError()
+
     bot_task = bot_task.copy(update=new_task.dict())
+    # Reset errors & next time run on save
+    reset_bot_task_params(
+        task = bot_task,
+        reset_errors=True,
+        reset_next_run=True,
+        reset_status_if_active=True
+    )
+    # saving task
     bot_task.update_db()
+
+def reset_bot_task_params(
+    task: BotTask,
+    reset_errors: bool = True,
+    reset_next_run: bool = True,
+    reset_status_if_active: bool = True
+):
+    # TODO: add bot_used resetting
+    # mb when change task_type or 
+    # task target data
+    if reset_errors:
+        task.error = None
+    if reset_next_run:
+        task.next_run_timestamp = None
+    if reset_status_if_active:
+        if task.is_active:
+            task.status = BotTaskStatusEnum.running
 
 def bot_task_check_need_run(
     bot_task: BotTask

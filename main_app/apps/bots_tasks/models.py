@@ -49,6 +49,7 @@ class CreateBotTask(BaseModel):
     platform: PlatformEnum
     task_type: TaskTypeEnum
     task_target_data: TaskTargetData
+    is_active: bool = False 
 
     @root_validator
     def validate_create_bot(cls, values):
@@ -117,6 +118,7 @@ class BotTask(BaseModel):
         return inserted_bot or None
 
     def update_db(self):
+        self.updated_date = get_time_now()
         updated_bot = db_provider.bots_tasks_db.find_one_and_update(
             {"_id": self.id},
             {"$set": self.dict(by_alias=True)},
