@@ -56,6 +56,7 @@ def like_post_vk(
         owner_id = wall.owner_id,
         item_id = currentPost.id
     )
+
     print('post id kis', currentPost.id)
     print('like Query is', likeQuery)
     for bot in bots:
@@ -90,6 +91,8 @@ def like_post_vk(
                 count_amount = 1
             )
             event.save_db()
+            # update bot metrics like_count
+            bot.daily_metrics.like_count += 1
             # update bot last used
             bot.update_db(update_used=True)
         except Exception as e:
@@ -131,6 +134,7 @@ def process_like_post_task(
         sort_by = BotSortByEnum.last_used,
         sort_direction = 1,
         exclude_by_ids = bot_task.bots_used,
+        filter_by_rate_limits = 1
     )
     # get bots for task 
     bot_search: BotSearch = get_bots(bot_filter_query)

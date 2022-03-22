@@ -5,6 +5,8 @@ from pydantic import UUID4
 from .models import *
 from .bot_exceptions import *
 
+
+
 def get_bots(
     query: BotSearchQuery
 ):
@@ -75,6 +77,41 @@ def create_bot(bot: BotCreate) -> dict:
     }
 
 def check_rate_limits(
+    bot: Bot,
+    check_like_limits: bool = False,
+    check_reply_limits: bool = False,
+    check_comment_limits: bool = False
 ) -> bool:
+    # TODO: improve method
+    if check_like_limits:
+        h_like_limit = rate_limits.hourly.like_count
+        d_like_limit = rate_limits.daily.like_count
+        h_like = bot.hourly_metrics.like_count
+        d_like = bot.daily_metrics.like_count
+        if (
+            (h_like >= h_like_limit) or
+            (d_like >= d_like_limit)
+        ):
+            return False
+    if check_reply_limits:
+        h_reply_limit = rate_limits.hourly.like_count
+        d_reply_limit = rate_limits.daily.like_count
+        h_reply = bot.hourly_metrics.like_count
+        d_reply = bot.daily_metrics.like_count
+        if (
+            (h_reply >= h_reply_limit) or
+            (d_reply >= d_reply_limit)
+        ):
+            return False
+    if check_comment_limits:
+        h_comment_limit = rate_limits.hourly.like_count
+        d_comment_limit = rate_limits.daily.like_count
+        h_comment = bot.hourly_metrics.like_count
+        d_comment = bot.daily_metrics.like_count
+        if (
+            (h_comment >= h_comment_limit) or
+            (d_comment >= d_comment_limit)
+        ):
+            return False
     return True
 

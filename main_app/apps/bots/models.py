@@ -25,6 +25,65 @@ class BotSortByEnum(str, Enum):
     created_time = 'created_time'
     last_used = 'last_used'
 
+class BotDailyMetrics(BaseModel):
+    """
+    Bot dialy metrics model
+    """
+    like_count: int = 0
+    reply_count: int = 0
+    comment_count: int = 0
+
+class BotRateLimits(BaseModel):
+    daily: BotDailyMetrics = BotDailyMetrics()
+    hourly: BotDailyMetrics = BotDailyMetrics()
+
+    def append_dialy_hourly_filters(
+        self,
+        filters: dict
+    ) -> dict:
+        filters = self.daily_append_as_db_filter(filters)
+        filters = self.hourly_append_as_db_filter(filters)
+        return filters
+    def daily_append_as_db_filter(self, filters: dict) -> dict:
+        filters['daily_metrics.like_count'] = {
+            "$lte": self.daily.like_count
+        }
+        filters['daily_metrics.reply_count'] = {
+            "$lte": self.daily.reply_count
+        }
+        filters['daily_metrics.comment_count'] = {
+            "$lte": self.daily.comment_count
+        }
+        return filters
+    def hourly_append_as_db_filter(self, filters: dict) -> dict:
+        filters['hourly_metrics.like_count'] = {
+            "$lte": self.hourly.like_count
+        }
+        filters['hourly_metrics.reply_count'] = {
+            "$lte": self.hourly.reply_count
+        }
+        filters['hourly_metrics.comment_count'] = {
+            "$lte": self.hourly.comment_count
+        }
+        return filters
+
+dailyRateLimits = BotDailyMetrics(
+    like_count = 30,
+    reply_count = 10,
+    comment_count = 40
+)
+
+hourlyRateLimits = BotDailyMetrics(
+    like_count = 8,
+    reply_count = 3,
+    comment_count = 10 
+)
+
+rate_limits = BotRateLimits(
+    daily = dailyRateLimits,
+    hourly = hourlyRateLimits
+)
+
 class BotCreate(BaseModel):
     """
         Bot create model
@@ -56,6 +115,11 @@ class Bot(BaseModel):
     comment_count: int = 0
     platform: Optional[PlatformEnum] = None
     gender: Optional[GenderEnum] = None
+    # daily metrics like|reply|comment etc. counts
+    daily_metrics: BotDailyMetrics = BotDailyMetrics()
+    # hourly metrics like|reply|comment etc. counts
+    hourly_metrics: BotDailyMetrics = BotDailyMetrics()
+
 
     def save_db(self) -> InsertOneResult | None:
         inserted_bot: InsertOneResult = db_provider.bots_db.insert_one(self.dict(by_alias=True)
@@ -104,6 +168,7 @@ class BotSearchQuery:
     sort_by: BotSortByEnum
     sort_direction: int
     exclude_by_ids: list[UUID4]
+    filter_by_rate_limits: int
     def __init__(
         self,
         platform: PlatformEnum = None,
@@ -114,7 +179,8 @@ class BotSearchQuery:
         is_in_use: int = None,
         sort_by: BotSortByEnum = BotSortByEnum.created_time,
         sort_direction: int = -1,
-        exclude_by_ids: list[UUID4] = []
+        exclude_by_ids: list[UUID4] = [],
+        filter_by_rate_limits: int = 0
     ):
         self.limit = limit
         self.offset = offset
@@ -125,6 +191,7 @@ class BotSearchQuery:
         self.sort_by = sort_by
         self.sort_direction = sort_direction
         self.exclude_by_ids = exclude_by_ids
+        self.filter_by_rate_limits = filter_by_rate_limits
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -141,10 +208,15 @@ class BotSearchQuery:
         if self.gender is not None:
             filters['gender'] = self.gender
 
+        # exclude by ids filter
         if len(self.exclude_by_ids) > 0:
             filters['id'] = {
                 '$nin': self.exclude_by_ids
             }
+        
+        # apply filter by rate limits
+        if bool(self.filter_by_rate_limits):
+            filters = rate_limits.append_dialy_hourly_filters(filters)
 
         return filters
 
