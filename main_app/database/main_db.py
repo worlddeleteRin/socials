@@ -35,12 +35,10 @@ class DbProvider(BaseModel):
     bots_db: Collection
     bots_tasks_db: Collection
     bots_events_db: Collection
+    tasks_types_db: Collection
 
     class Config:
         arbitrary_types_allowed = True
-
-      
-
 
 @lru_cache
 def setup_db_main() -> DbProvider:
@@ -68,13 +66,12 @@ def setup_db_main() -> DbProvider:
                 bonuses_levels_db = db_main["bonuses_levels"],
                 bots_db = db_main["bots"],
                 bots_tasks_db = db_main["bots_tasks"],
-                bots_events_db = db_main["bots_events"]
+                bots_events_db = db_main["bots_events"],
+                tasks_types_db = db_main["tasks_types"]
             )
     return db_provider
 
 db_provider = setup_db_main()
-
-
 
 
 

@@ -39,7 +39,30 @@ class TaskType(BaseModel):
     """
     id: TaskTypeEnum
     name: str
+    description: str = ""
     platforms: list[PlatformEnum]
+    duration_type: TaskDurationTypeEnum
+    is_active: bool
+
+    def save_db(self) -> InsertOneResult | None:
+        inserted_bot: InsertOneResult = db_provider.tasks_types_db.insert_one(self.dict(by_alias=True)
+        )
+        return inserted_bot or None
+
+    def update_db(self):
+        updated_task_type = db_provider.tasks_types_db.find_one_and_update(
+            {"_id": self.id},
+            {"$set": self.dict(by_alias=True)},
+            return_document=ReturnDocument.AFTER
+        )
+        if updated_task_type:
+            return TaskType(**updated_task_type)
+        return None
+
+    def remove_db(self):
+        db_provider.tasks_types_db.remove(
+            {"id": self.id},
+        )
 
 class CreateBotTask(BaseModel):
     """
@@ -87,6 +110,8 @@ class BotTask(BaseModel):
     task_result_metrics: TaskResultMetrics = TaskResultMetrics()
     task_target_data: TaskTargetData
     bots_used: list[UUID4] = []
+    delete_after_finished: bool = False
+    is_hidden: bool = False
 
     def setFinished(self):
         self.status = BotTaskStatusEnum.finished
@@ -150,6 +175,7 @@ class BotTasksSearchQuery:
     task_type: TaskTypeEnum | None
     is_active: bool | None
     status: BotTaskStatusEnum | None
+    is_hidden: bool = False
 
     def __init__(
         self,
@@ -158,7 +184,8 @@ class BotTasksSearchQuery:
         platform: Optional[PlatformEnum] = None,
         task_type: Optional[TaskTypeEnum] = None,
         is_active: Optional[bool] = None,
-        status: Optional[BotTaskStatusEnum] = None
+        status: Optional[BotTaskStatusEnum] = None,
+        is_hidden: bool = False
     ):
         self.skip = skip
         self.limit = limit
@@ -166,6 +193,7 @@ class BotTasksSearchQuery:
         self.task_type = task_type
         self.is_active = is_active
         self.status = status
+        self.is_hidden = is_hidden
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -178,6 +206,7 @@ class BotTasksSearchQuery:
             filters['is_active'] = self.is_active
         if (self.status):
             filters['status'] = self.status
+        filters['is_hidden'] = self.is_hidden
 
         return filters
 

@@ -5,6 +5,22 @@ from .bots_tasks_exceptions import *
 from apps.bots.models import BotSearchQuery, Bot
 from apps.bots.bots import get_bots
 
+def get_tasks_types() -> list[TaskType]:
+    tasks_types_dict = db_provider.tasks_types_db.find({})
+    tasks_types = [TaskType(**task_type) for task_type in tasks_types_dict]
+    return tasks_types
+
+def create_task_type(new_task_type: TaskType):
+    task_types_raw = db_provider.tasks_types_db.find(
+        {"id": new_task_type.id}
+    )
+    task_types = [task_type for task_type in task_types_raw]
+
+    if len(task_types) > 0:
+        raise TaskTypeExist()
+
+    new_task_type.save_db()
+    
 
 def get_bot_tasks(
     query: BotTasksSearchQuery
@@ -128,4 +144,3 @@ def process_bot_task(
         return False
     if bot_task.task_type == TaskTypeEnum.like_post:
         process_like_post_task(bot_task)
-

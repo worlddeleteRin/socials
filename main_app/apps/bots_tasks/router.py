@@ -12,6 +12,20 @@ router = APIRouter(
     tags= ["bots_tasks"]
 )
 
+@router.get("/tasks_types", response_model=list[TaskType])
+def get_tasks_types_request(
+    admin_user = Depends(get_current_admin_user),
+):
+    return get_tasks_types()
+
+@router.post("/tasks_types")
+def create_tasks_types_request(
+    new_task_type: TaskType,
+    admin_user = Depends(get_current_admin_user),
+):
+    create_task_type(new_task_type)
+    return simple_success_response()
+
 @router.get("/", response_model=BotTasksSearch, response_model_by_alias=False)
 def get_bots_tasks_request(
     admin_user = Depends(get_current_admin_user),
