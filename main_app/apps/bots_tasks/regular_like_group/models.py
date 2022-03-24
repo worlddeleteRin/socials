@@ -16,10 +16,13 @@ class RegularLikeGroupTargetData(BaseModel):
     # work_lag for each post like
     work_lag: WorkLagEnum = WorkLagEnum.one_minute
 
+    """ 
     @root_validator
     def validate_like_post_target_data(cls, values):
         pass
+    """
 
 
 class RegularLikeGroupResultMetrics(BaseModel):
     like_count: int = 0
+    processed_posts_ids: list[str] = []

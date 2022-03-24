@@ -1,4 +1,6 @@
 from apps.bots_tasks.like_post.like_post import process_like_post_task
+# from apps.bots_tasks.regular_like_group.regular_like_group import process_regular_like_group_task
+from apps.bots_tasks.regular_like_group import process_regular_like_group_task
 from database.main_db import db_provider
 from .models import *
 from .bots_tasks_exceptions import *
@@ -142,5 +144,9 @@ def process_bot_task(
     # check, if need to run task
     if not bot_task_check_need_run(bot_task):
         return False
+    # process like_post task
     if bot_task.task_type == TaskTypeEnum.like_post:
         process_like_post_task(bot_task)
+    # process regular_like_group task
+    if bot_task.task_type == TaskTypeEnum.regular_like_group:
+        process_regular_like_group_task(bot_task)

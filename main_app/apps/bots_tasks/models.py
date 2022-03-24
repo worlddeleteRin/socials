@@ -1,6 +1,7 @@
 import uuid
 # from enum import Enum, unique
 from datetime import datetime
+from apps.bots_tasks.regular_like_group.models import RegularLikeGroupResultMetrics, RegularLikeGroupTargetData
 from apps.site.utils import get_time_now
 from pymongo.results import InsertOneResult
 from pydantic import BaseModel, Field, UUID4, root_validator
@@ -26,12 +27,14 @@ class TaskTargetData(BaseModel):
     Task target data model
     """
     like_post: Optional[LikePostTargetData] = None
+    regular_like_group: Optional[RegularLikeGroupTargetData] = None
 
 class TaskResultMetrics(BaseModel):
     """
     Task result metrics data
     """
     like_post: Optional[LikePostResultMetrics] = None
+    regular_like_group: Optional[RegularLikeGroupResultMetrics] = None
 
 class TaskType(BaseModel):
     """
@@ -73,6 +76,9 @@ class CreateBotTask(BaseModel):
     task_type: TaskTypeEnum
     task_target_data: TaskTargetData
     is_active: bool = False 
+    # hidden fields
+    delete_after_finished: bool = False
+    is_hidden: bool = False
 
     @root_validator
     def validate_create_bot(cls, values):
@@ -175,7 +181,7 @@ class BotTasksSearchQuery:
     task_type: TaskTypeEnum | None
     is_active: bool | None
     status: BotTaskStatusEnum | None
-    is_hidden: bool = False
+    include_hidden: bool = False
 
     def __init__(
         self,
@@ -185,7 +191,7 @@ class BotTasksSearchQuery:
         task_type: Optional[TaskTypeEnum] = None,
         is_active: Optional[bool] = None,
         status: Optional[BotTaskStatusEnum] = None,
-        is_hidden: bool = False
+        include_hidden: bool = False
     ):
         self.skip = skip
         self.limit = limit
@@ -193,7 +199,7 @@ class BotTasksSearchQuery:
         self.task_type = task_type
         self.is_active = is_active
         self.status = status
-        self.is_hidden = is_hidden
+        self.include_hidden = include_hidden
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -206,7 +212,8 @@ class BotTasksSearchQuery:
             filters['is_active'] = self.is_active
         if (self.status):
             filters['status'] = self.status
-        filters['is_hidden'] = self.is_hidden
+        if not (self.include_hidden):
+            filters['is_hidden'] = False
 
         return filters
 

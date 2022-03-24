@@ -115,3 +115,16 @@ def check_rate_limits(
             return False
     return True
 
+def get_random_bot_client_by_platform(
+    platform: PlatformEnum
+) -> Bot: 
+    query = BotSearchQuery(
+        limit = 1, 
+        is_active = 1,
+        is_in_use = 1,
+        platform = platform,
+        sort_by = BotSortByEnum.last_used,
+        sort_direction = 1,
+    )
+    bot_search = get_bots(query = query)
+    return bot_search.bots[0]

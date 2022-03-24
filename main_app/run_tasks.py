@@ -10,6 +10,7 @@ def process_tasks():
     bot_tasks_query = BotTasksSearchQuery(
         status = BotTaskStatusEnum.running,
         is_active=True,
+        include_hidden=True
     )
     bot_tasks_search: BotTasksSearch = get_bot_tasks(
         query = bot_tasks_query
