@@ -2,7 +2,7 @@ from fastapi.routing import APIRouter
 from fastapi import Depends
 from apps.users.user import get_current_admin_user
 from utils.responses import simple_success_response
-from .bots_tasks import *
+from .main import *
 from .models import *
 from .bots_tasks_exceptions import *
 

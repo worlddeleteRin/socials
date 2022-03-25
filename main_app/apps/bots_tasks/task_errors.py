@@ -1,4 +1,10 @@
+from typing import Any
 from apps.bots_tasks.models import BotTaskError
+
+def info_error(error: Any):
+    return BotTaskError(
+        error_msg = f"{error}"
+    )
 
 NoBotsForTaskError = BotTaskError(
     error_msg = 'No more bots to make task'

@@ -1,11 +1,13 @@
 from apps.bots_tasks.like_post.like_post import process_like_post_task
-# from apps.bots_tasks.regular_like_group.regular_like_group import process_regular_like_group_task
-from apps.bots_tasks.regular_like_group import process_regular_like_group_task
 from database.main_db import db_provider
 from .models import *
 from .bots_tasks_exceptions import *
 from apps.bots.models import BotSearchQuery, Bot
 from apps.bots.bots import get_bots
+
+from apps import bots_tasks
+
+import apps.bots_tasks.regular_like_group.main
 
 def get_tasks_types() -> list[TaskType]:
     tasks_types_dict = db_provider.tasks_types_db.find({})
@@ -149,4 +151,6 @@ def process_bot_task(
         process_like_post_task(bot_task)
     # process regular_like_group task
     if bot_task.task_type == TaskTypeEnum.regular_like_group:
-        process_regular_like_group_task(bot_task)
+        apps.bots_tasks.regular_like_group.main.process_regular_like_group_task(
+            bot_task
+        )

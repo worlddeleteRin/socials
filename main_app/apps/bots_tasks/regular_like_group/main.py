@@ -1,16 +1,19 @@
 from apps.bots.bots import get_random_bot_client_by_platform
 from apps.bots.models import Bot, PlatformEnum
+# from apps.bots_tasks.main import create_bot_task
 from apps.bots_tasks.enums import TaskTypeEnum
 from apps.bots_tasks.like_post.models import LikePostTargetData
 from apps.bots_tasks.models import BotTask, CreateBotTask, TaskTargetData
 from apps.bots_tasks.regular_like_group.errors import ErrorGettingGroupInfo, ErrorGettingWallPosts
 from apps.bots_tasks.regular_like_group.models import RegularLikeGroupResultMetrics, RegularLikeGroupTargetData
-from apps.bots_tasks.task_errors import ErrorGettingDefaultBotClient, NoPlatformSpecified, NoTaskDataSpecified
+from apps.bots_tasks.task_errors import ErrorGettingDefaultBotClient, NoPlatformSpecified, NoTaskDataSpecified, info_error
 from apps.bots_tasks.utils import get_datetime_from_work_lag
 from apps.site.utils import get_time_now_timestamp
 from vk_core.client import VkClient
 from vk_core.group.group import VkGroup, VkGroupModel
 from vk_core.wall.wall import VkPost, VkWall, WallPostsGetQuery
+
+import apps.bots_tasks.main
 
 """
     Regular like group for vk platform
@@ -51,7 +54,7 @@ def regular_like_group_vk(
     # initialize wall instance
     wall = VkWall(
         client = client,
-        owner_id = current_group.id
+        owner_id = -current_group.id
     )
     # try to get last n posts from wall
     try:
@@ -59,8 +62,9 @@ def regular_like_group_vk(
             count = posts_check_count
         )
         posts: list[VkPost] =  wall.get(query=query).items
-    except:
-        task.setError(ErrorGettingWallPosts)
+    except Exception as e:
+        # task.setError(ErrorGettingWallPosts)
+        task.setError(info_error(e))
         return
     # filter for posts that not processed
     not_processed_posts = [
@@ -69,9 +73,7 @@ def regular_like_group_vk(
     # assign metrics processed posts with new ids
     metrics.processed_posts_ids = [str(post.id) for post in posts]
     if len(not_processed_posts) == 0:
-        print('no not processed posts')
         return
-    print(len(not_processed_posts), 'not processed posts')
 
     # create like task for each not processed post
     for p in not_processed_posts:
@@ -82,24 +84,23 @@ def regular_like_group_vk(
         )
         new_task = CreateBotTask(
             title = f"regular task like for ${group_id}",
-            paltform = PlatformEnum.vk,
+            platform = PlatformEnum.vk,
             task_type = TaskTypeEnum.like_post,
-            task_target_date = TaskTargetData(
+            task_target_data = TaskTargetData(
                 like_post = like_post_data
             ),
             delete_after_finished = True,
             is_hidden = True,
-            is_active = False
+            is_active = True
         )
         try:
-            create_bot_task(new_task=new_task)
+            apps.bots_tasks.main.create_bot_task(new_task=new_task)
         except:
             pass
 
 def process_regular_like_group_task(
     task: BotTask
 ):
-    print('run process regular like group task')
     if not task.platform: 
         task.setError(NoPlatformSpecified)
         return
@@ -135,7 +136,8 @@ def process_regular_like_group_task(
     check_frequency_timestamp = int(get_datetime_from_work_lag(
         lag = check_frequency
     ).timestamp())
-    task.next_run_timestamp = timestamp_now + (timestamp_now - check_frequency_timestamp)
+    # task.next_run_timestamp = timestamp_now + (timestamp_now - check_frequency_timestamp)
+    task.next_run_timestamp = timestamp_now + (check_frequency_timestamp - timestamp_now)
     # update task in db
     task.update_db()
 
