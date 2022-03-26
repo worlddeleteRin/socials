@@ -9,6 +9,8 @@ from config import settings
 
 from pydantic import BaseModel
 
+# from bson.binary import UuidRepresentation
+
 
 
 
@@ -43,7 +45,10 @@ class DbProvider(BaseModel):
 @lru_cache
 def setup_db_main() -> DbProvider:
     print('call setup db_main function')
-    db_client  = MongoClient(settings.DB_URL)
+    db_client  = MongoClient(
+        settings.DB_URL,
+        uuidRepresentation = 'pythonLegacy'
+    )
     db_main = db_client[settings.DB_NAME]
     db_provider = DbProvider(
                 db_client = db_client,

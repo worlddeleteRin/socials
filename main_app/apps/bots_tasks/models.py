@@ -63,7 +63,7 @@ class TaskType(BaseModel):
         return None
 
     def remove_db(self):
-        db_provider.tasks_types_db.remove(
+        db_provider.tasks_types_db.delete_one(
             {"id": self.id},
         )
 
@@ -160,7 +160,7 @@ class BotTask(BaseModel):
         return None
 
     def remove_db(self):
-        db_provider.bots_tasks_db.remove(
+        db_provider.bots_tasks_db.delete_one(
             {"_id": self.id},
         )
 

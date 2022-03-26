@@ -95,6 +95,7 @@ class BotCreate(BaseModel):
     is_in_use: bool = False
     platform: PlatformEnum
     gender: GenderEnum
+    rest_until: Optional[datetime]
 
 class Bot(BaseModel):
     """
@@ -115,6 +116,7 @@ class Bot(BaseModel):
     comment_count: int = 0
     platform: Optional[PlatformEnum] = None
     gender: Optional[GenderEnum] = None
+    rest_until: Optional[datetime] = None
     # daily metrics like|reply|comment etc. counts
     daily_metrics: BotDailyMetrics = BotDailyMetrics()
     # hourly metrics like|reply|comment etc. counts
@@ -142,7 +144,7 @@ class Bot(BaseModel):
         return None
 
     def remove_db(self):
-        db_provider.bots_db.remove(
+        db_provider.bots_db.delete_one(
             {"id": self.id},
         )
 
