@@ -187,6 +187,7 @@ class BotSearchQuery:
     sort_direction: int
     exclude_by_ids: list[UUID4]
     filter_by_rate_limits: int
+    has_rest_until: int
     def __init__(
         self,
         platform: PlatformEnum = None,
@@ -198,7 +199,8 @@ class BotSearchQuery:
         sort_by: BotSortByEnum = BotSortByEnum.created_time,
         sort_direction: int = -1,
         exclude_by_ids: list[UUID4] = [],
-        filter_by_rate_limits: int = 0
+        filter_by_rate_limits: int = 0,
+        has_rest_until: int = 0
     ):
         self.limit = limit
         self.offset = offset
@@ -210,6 +212,7 @@ class BotSearchQuery:
         self.sort_direction = sort_direction
         self.exclude_by_ids = exclude_by_ids
         self.filter_by_rate_limits = filter_by_rate_limits
+        self.has_rest_until = has_rest_until
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -235,6 +238,12 @@ class BotSearchQuery:
         # apply filter by rate limits
         if bool(self.filter_by_rate_limits):
             filters = rate_limits.append_dialy_hourly_filters(filters)
+
+        # rest_until filter
+        if bool(self.has_rest_until):
+            filters['has_rest_until'] = {
+                '$ne': None
+            }
 
         return filters
 

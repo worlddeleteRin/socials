@@ -20,7 +20,7 @@ def process_tasks():
         process_bot_task(
             bot_task
         )
-    time.sleep(3)
+    time.sleep(time_to_sleep)
     process_tasks()
 
 if __name__ == '__main__':
