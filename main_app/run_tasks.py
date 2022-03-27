@@ -1,3 +1,5 @@
+import os
+os.environ['env_mode'] = 'prod'
 import time
 from apps.bots_tasks.models import *
 from apps.bots_tasks.enums import *

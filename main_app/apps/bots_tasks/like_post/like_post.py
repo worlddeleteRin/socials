@@ -143,7 +143,10 @@ def process_like_post_task(
     # check if not bots stop task attach error
     if len(bots) == 0:
         bot_task.setError(NoBotsForTaskError)
-        bot_task.update_db()
+        if bot_task.delete_after_finished:
+            bot_task.remove_db()
+        else:
+            bot_task.update_db()
         return
     # 
     print('time delimeter is', time_delimeter)
