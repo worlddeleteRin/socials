@@ -24,7 +24,8 @@ def process_tasks():
     except:
         pass
     time.sleep(time_to_sleep)
-    process_tasks()
+    # process_tasks()
 
 if __name__ == '__main__':
-    process_tasks()
+    while True:
+        process_tasks()
