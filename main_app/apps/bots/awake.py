@@ -20,7 +20,7 @@ def process_bot_awake(
     need_awake = check_bot_need_awake(bot=bot)
     if not need_awake:
         if not bot.is_resting:
-            bot.is_resting = True
+            bot.set_resting()
             bot.update_db()
         return
     if need_awake:

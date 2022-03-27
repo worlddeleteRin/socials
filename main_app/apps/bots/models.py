@@ -170,6 +170,11 @@ class Bot(BaseModel):
         self.is_resting = False
         self.rest_until = None
 
+    def set_resting(self):
+        self.is_active = False
+        self.is_in_use = False
+        self.is_resting = True
+
     class Config:
         allow_population_by_field_name = True
 

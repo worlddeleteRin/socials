@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     default_bonuses_percent: int = 3
 
     # socials default clients
-    vk_default_client_token: str
+    vk_default_client_token: str = ""
 
 
     class Config:

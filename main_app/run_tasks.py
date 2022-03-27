@@ -7,19 +7,22 @@ time_to_sleep = 3
 
 def process_tasks():
     print('run process tasks...')
-    bot_tasks_query = BotTasksSearchQuery(
-        status = BotTaskStatusEnum.running,
-        is_active=True,
-        include_hidden=True
-    )
-    bot_tasks_search: BotTasksSearch = get_bot_tasks(
-        query = bot_tasks_query
-    )
-    # print('bot tasks are', bot_tasks)
-    for bot_task in bot_tasks_search.bot_tasks:
-        process_bot_task(
-            bot_task
+    try:
+        bot_tasks_query = BotTasksSearchQuery(
+            status = BotTaskStatusEnum.running,
+            is_active=True,
+            include_hidden=True
         )
+        bot_tasks_search: BotTasksSearch = get_bot_tasks(
+            query = bot_tasks_query
+        )
+        # print('bot tasks are', bot_tasks)
+        for bot_task in bot_tasks_search.bot_tasks:
+            process_bot_task(
+                bot_task
+            )
+    except:
+        pass
     time.sleep(time_to_sleep)
     process_tasks()
 
