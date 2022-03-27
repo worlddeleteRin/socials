@@ -1,3 +1,4 @@
+from apps.bots.vk_utils import check_banned_vk
 from database.main_db import db_provider
 from pymongo.cursor import Cursor 
 from pydantic import UUID4
@@ -128,3 +129,10 @@ def get_random_bot_client_by_platform(
     )
     bot_search = get_bots(query = query)
     return bot_search.bots[0]
+
+def check_is_banned(
+    bot: Bot
+) -> bool:
+    if bot.platform == PlatformEnum.vk:
+        return check_banned_vk(bot = bot)
+    return False

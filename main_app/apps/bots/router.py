@@ -1,6 +1,7 @@
 from fastapi.routing import APIRouter
 from fastapi import Depends
 from apps.users.user import get_current_admin_user
+from utils.responses import simple_success_response
 from .bots import *
 from .models import *
 from .bot_exceptions import *
@@ -50,6 +51,23 @@ def get_bot_request(
         return None
     # return []
     return bot.dict()
+
+"""
+Check if bot is banned
+"""
+@router.get("/{id}/check_banned")
+def request_check_bot_banned(
+    id: UUID4,
+    admin_user = Depends(get_current_admin_user)
+):
+    bot = get_bot_by_id(id)
+    if not bot:
+        return None
+    is_banned = check_is_banned(bot=bot)
+    if is_banned:
+        bot.set_banned()
+    bot.update_db()
+    return simple_success_response()
 
 @router.delete("/{id}")
 def remove_bot_request(

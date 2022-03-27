@@ -9,3 +9,8 @@ class BotAlreadyExists(HTTPException):
     def __init__(self):
         self.status_code = 400
         self.detail = "bot already exists"
+
+class PlatformBotNotFoundException(HTTPException):
+    def __init__(self):
+        self.status_code = 400
+        self.detail = "bot not found"

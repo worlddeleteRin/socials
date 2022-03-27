@@ -10,6 +10,8 @@ from typing import Optional
 from database.main_db import db_provider
 from pymongo import ReturnDocument
 
+from vk_core.users.main import VkUserModel
+
 @unique
 class PlatformEnum(str, Enum):
     vk = "vk"
@@ -84,6 +86,9 @@ rate_limits = BotRateLimits(
     hourly = hourlyRateLimits
 )
 
+class BotPlatformData(BaseModel):
+    vk: Optional[VkUserModel] = None
+
 class BotCreate(BaseModel):
     """
         Bot create model
@@ -106,11 +111,15 @@ class Bot(BaseModel):
     password: str = ""
     access_token: str = ""
     created_time: datetime = Field(default_factory=get_time_now)
+    # bot platform data
+    platform_data: BotPlatformData = BotPlatformData()
     # TODO: replace with enum mb?
     created_source: Optional[str] = ""
     last_used: Optional[datetime] = None
     is_active: bool = False
     is_in_use: bool = False
+    is_banned: bool = False
+    is_resting: bool = False
     like_count: int = 0
     reply_count: int = 0
     comment_count: int = 0
@@ -147,6 +156,13 @@ class Bot(BaseModel):
         db_provider.bots_db.delete_one(
             {"id": self.id},
         )
+
+    def set_banned(self):
+        self.is_banned = True
+        self.is_active = False
+        self.is_in_use = False
+        self.is_resting = False
+        self.rest_until = None
 
     class Config:
         allow_population_by_field_name = True
