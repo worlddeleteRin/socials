@@ -164,6 +164,12 @@ class Bot(BaseModel):
         self.is_resting = False
         self.rest_until = None
 
+    def set_awake(self):
+        self.is_active = True
+        self.is_in_use = True
+        self.is_resting = False
+        self.rest_until = None
+
     class Config:
         allow_population_by_field_name = True
 
@@ -241,7 +247,7 @@ class BotSearchQuery:
 
         # rest_until filter
         if bool(self.has_rest_until):
-            filters['has_rest_until'] = {
+            filters['rest_until'] = {
                 '$ne': None
             }
 
