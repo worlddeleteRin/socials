@@ -45,7 +45,8 @@ def get_settings():
         env_file = '.env.prod'
     elif env_mode == 'dev':
         env_file = '.env.dev'
-    env_file = '.env.dev'
+    else:
+        env_file = '.env.dev'
     #print('settings are', Settings())
     env_location = f'{env_file}'
     print('env location is', env_location)
