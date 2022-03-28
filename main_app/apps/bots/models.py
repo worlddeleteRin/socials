@@ -4,6 +4,7 @@ from pydantic import BaseModel, UUID4, Field
 from datetime import datetime
 
 from pymongo.results import InsertOneResult
+from apps.bots.enums import CountryEnum
 from apps.site.utils import get_time_now
 from typing import Optional
 
@@ -100,6 +101,7 @@ class BotCreate(BaseModel):
     is_in_use: bool = False
     platform: PlatformEnum
     gender: GenderEnum
+    country: CountryEnum = CountryEnum.russia
     rest_until: Optional[datetime]
 
 class Bot(BaseModel):
@@ -123,6 +125,7 @@ class Bot(BaseModel):
     like_count: int = 0
     reply_count: int = 0
     comment_count: int = 0
+    country: CountryEnum = CountryEnum.russia
     platform: Optional[PlatformEnum] = None
     gender: Optional[GenderEnum] = None
     rest_until: Optional[datetime] = None
