@@ -1,4 +1,6 @@
 import time
+import os
+os.environ['env_mode'] = 'prod'
 from apps.bots.awake import process_bot_awake
 from apps.bots.bots import get_bots
 

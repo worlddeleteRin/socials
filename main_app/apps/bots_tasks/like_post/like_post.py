@@ -176,10 +176,13 @@ def process_like_post_task(
     # set task finished if task completed
     if already_liked >= need_like_total:
         bot_task.setFinished()
+        """
         if bot_task.delete_after_finished:
             bot_task.remove_db()
         else:
             bot_task.update_db()
+        """
+        bot_task.update_db()
         return
 
     # calculate next time need run TODO

@@ -1,3 +1,5 @@
+import os
+os.environ['env_mode'] = 'prod'
 from database.main_db import db_provider
 from apps.bots.models import BotDailyMetrics
 

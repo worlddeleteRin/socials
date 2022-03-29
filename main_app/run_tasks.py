@@ -18,12 +18,13 @@ def process_tasks():
         bot_tasks_search: BotTasksSearch = get_bot_tasks(
             query = bot_tasks_query
         )
-        # print('bot tasks are', bot_tasks)
+        # print('bot tasks are', bot_tasks_search.bot_tasks)
         for bot_task in bot_tasks_search.bot_tasks:
             process_bot_task(
                 bot_task
             )
-    except:
+    except Exception as e:
+        print('error while run process tasks', e)
         pass
     time.sleep(time_to_sleep)
     # process_tasks()

@@ -126,9 +126,13 @@ def bot_task_check_need_run(
     if ((not bot_task.status == BotTaskStatusEnum.running) or 
         (not bot_task.is_active)):
         return False
+    print('first check passed')
     # check, if time come
-    if ((not bot_task.next_run_timestamp is None) and
-        (bot_task.next_run_timestamp > get_time_now().timestamp())):
+    # TODO: fix behavior
+    now =  int(get_time_now().timestamp())
+    need_run = bot_task.next_run_timestamp
+    if ((not need_run is None) and
+        (need_run > now)):
         return False
     return True
 
@@ -145,6 +149,7 @@ def process_bot_task(
     """
     # check, if need to run task
     if not bot_task_check_need_run(bot_task):
+        print('task dont need to be run')
         return False
     # process like_post task
     if bot_task.task_type == TaskTypeEnum.like_post:
