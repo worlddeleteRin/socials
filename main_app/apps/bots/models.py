@@ -16,6 +16,7 @@ from vk_core.users.main import VkUserModel
 @unique
 class PlatformEnum(str, Enum):
     vk = "vk"
+    ok = "ok"
     instagram = "instagram"
 
 @unique
@@ -204,12 +205,12 @@ class BotSearchQuery:
     has_rest_until: int
     def __init__(
         self,
-        platform: PlatformEnum = None,
-        gender: GenderEnum = None,
+        platform: Optional[PlatformEnum] = None,
+        gender: Optional[GenderEnum] = None,
         limit: int = 10,
         offset: int = 0,
-        is_active: int = None,
-        is_in_use: int = None,
+        is_active: Optional[int] = None,
+        is_in_use: Optional[int] = None,
         sort_by: BotSortByEnum = BotSortByEnum.created_time,
         sort_direction: int = -1,
         exclude_by_ids: list[UUID4] = [],
