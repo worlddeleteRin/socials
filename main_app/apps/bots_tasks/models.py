@@ -123,6 +123,8 @@ class BotTask(BaseModel):
         self.status = BotTaskStatusEnum.finished
         self.is_active = False
         self.next_run_timestamp = None
+        if self.delete_after_finished:
+            self.remove_db()
 
     def setError(self, error: BotTaskError):
         self.error = error
