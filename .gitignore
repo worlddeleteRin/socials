@@ -19,5 +19,8 @@ pyrightconfig.json
 imports
 exports
 vk_core
+ok_core
 .DS_Store
 dump
+tests
+static
