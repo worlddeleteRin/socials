@@ -18,6 +18,8 @@ def get_time_left_delimeter_from_timestamp(
         return time_left_hours
     if time_left_minutes > 1:
         return time_left_minutes
+    if time_left_seconds < 1:
+        return 1
     return time_left_seconds
 
 def get_datetime_from_work_lag(

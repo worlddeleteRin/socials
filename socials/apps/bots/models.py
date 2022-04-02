@@ -123,6 +123,7 @@ class Bot(BaseModel):
     is_in_use: bool = False
     is_banned: bool = False
     is_resting: bool = False
+    need_action: bool = False
     like_count: int = 0
     reply_count: int = 0
     comment_count: int = 0
@@ -167,6 +168,10 @@ class Bot(BaseModel):
         self.is_in_use = False
         self.is_resting = False
         self.rest_until = None
+
+    def deactivate(self):
+        self.is_active = False
+        self.is_in_use = False
 
     def set_awake(self):
         self.is_active = True

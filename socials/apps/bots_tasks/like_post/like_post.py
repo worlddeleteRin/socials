@@ -1,12 +1,15 @@
 from socials.apps.bots.bots import get_bots
 from socials.apps.bots.models import Bot, BotSearch, BotSearchQuery, BotSortByEnum, PlatformEnum
+from socials.apps.bots_tasks.like_post.like_post_ok import like_post_ok
 from socials.apps.bots_tasks.like_post.like_post_vk import like_post_vk
 # from socials.apps.bots_events.models import BotEvent
 # from socials.apps.bots_tasks.enums import TaskTypeEnum
 from socials.apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
 from socials.apps.bots_tasks.models import BotTask
-from socials.apps.bots_tasks.task_errors import NoBotsForTaskError
+from socials.apps.bots_tasks.task_errors import CantProceedTaskPlatform, NoBotsForTaskError
 from socials.apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
+import logging
+logger = logging.getLogger(__name__)
 
 def process_like_post_task(
     bot_task: BotTask
@@ -61,9 +64,10 @@ def process_like_post_task(
     print('need process now:', process_now_count)
     # wall print('bots for task are', bots)
     print('bots len is ', len(bots))
-    print('run process like post task')
+    logger.warning('run process like post task')
     # run task based on platform type
     if bot_task.platform == PlatformEnum.vk:
+        # run on vk platform
         like_post_vk(
             bots = bots,
             like_count = process_now_count,
@@ -71,7 +75,21 @@ def process_like_post_task(
             bot_task = bot_task
         )
         bot_task.update_db()
+    elif bot_task.platform == PlatformEnum.ok:
+        # run on ok platform
+        like_post_ok(
+            bots = bots,
+            like_count = process_now_count,
+            metrics = metrics,
+            bot_task = bot_task
+        )
+    else:
+        # no platform found, add error
+        bot_task.setError(CantProceedTaskPlatform)
+        bot_task.update_db()
+        return
     if not bot_task.isRunning():
+        bot_task.update_db()
         return
     # get fresh data TODO: can be improved
     data: LikePostTargetData = bot_task.task_target_data.like_post

@@ -10,6 +10,10 @@ from ok_core.likes.models import OkAddLikeProviderEnum
 from ok_core.mediatopic.main import GetMediatopicByIdsQuery, OkMediatopicResponse
 from ok_core.mediatopic.main import OkMediatopic
 from ok_core.user.main import OkUser
+from socials.apps.bots_tasks.task_errors import OkErrorGetTopic, OkErrorPostUrl, info_error
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def like_post_ok(
@@ -18,18 +22,17 @@ def like_post_ok(
     metrics: LikePostResultMetrics,
     bot_task: BotTask
 ):
-    print('run like post ok')
+    logger.warning('run like post ok')
+    logger.warning(f'bots len is {len(bots)}')
     # check if target data specified
     if not bot_task.task_target_data.like_post:
-        # TODO
-        # bot_task.setError(OkErrorGetTopic)
+        bot_task.setError(OkErrorGetTopic)
         return
     # check if can get topic post
     link = bot_task.task_target_data.like_post.post_link
     postUrlInfo = OkGroup.parseGroupTopicIdsFromUrl(url=link)
     if not postUrlInfo:
-        # TODO
-        # bot_task.setError(OkErrorPostUrl)
+        bot_task.setError(OkErrorPostUrl)
         return
     # init def client
     def_client = OkClient()
@@ -43,9 +46,8 @@ def like_post_ok(
             query=topic_query
         )
     except Exception as e:
-        print('error get topic', e)
-        # TODO
-        # bot_task.setError(OkErrorGetTopic)
+        logger.warning(f'error get topic {e}')
+        bot_task.setError(OkErrorGetTopic)
         return
 
     query = OkAddLikeQuery(
@@ -60,12 +62,27 @@ def like_post_ok(
             password = bot.password
         )
         client = OkClient(user=user)
+        # check if bot can authorize
+        canAuthorize = user.check_can_authorize_web_dirty()
+        if not canAuthorize:
+            bot.need_action = True
+            bot.deactivate()
+            bot.update_db()
+            continue
+
         likes = OkLikes(client=client)
+
         # try to like post
-        likes.add(
-            provider=OkAddLikeProviderEnum.selenium,
-            query=query
-        )
+        try:
+            likes.add(
+                provider=OkAddLikeProviderEnum.selenium,
+                query=query
+            )
+        except Exception as e:
+            bot_task.setError(
+                info_error(e)
+            )
+            return
 
         try:
             bot_task.bots_used.append(bot.id)
@@ -86,5 +103,5 @@ def like_post_ok(
             # update bot last used
             bot.update_db(update_used=True)
         except Exception as e:
-            print('exception occured', e)
+            logger.warning(f'exception occured {e}')
             bot_task.setError(BotTaskError.dummy_error(e))
