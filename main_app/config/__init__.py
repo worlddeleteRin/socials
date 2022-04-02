@@ -9,6 +9,7 @@ import sys
 
 class Settings(BaseSettings):
     app_name: str = "Some app name"
+    env_mode: str = ""
     JWT_SECRET_KEY: str = ''
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 1
     JWT_SESSION_KEY: str = ''
@@ -50,6 +51,9 @@ def get_settings():
     #print('settings are', Settings())
     env_location = f'{env_file}'
     print('env location is', env_location)
-    return Settings(_env_file = env_location)
+    return Settings(
+        _env_file = env_location,
+        env_mode = env_mode
+    )
 
 settings = get_settings()
