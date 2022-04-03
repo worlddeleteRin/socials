@@ -40,14 +40,14 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
-    env_mode = os.getenv("env_mode") or 'dev'
+    env_mode = os.getenv("env_mode") or 'prod'
     print('env mode is', env_mode)
     if env_mode == 'prod':
         env_file = '.env.prod'
     elif env_mode == 'dev':
         env_file = '.env.dev'
     else:
-        env_file = '.env.dev'
+        env_file = '.env.prod'
     #print('settings are', Settings())
     env_location = f'{env_file}'
     print('env location is', env_location)

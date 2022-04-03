@@ -1,6 +1,8 @@
 import time
 import os
-os.environ['env_mode'] = 'prod'
+from socials.config import settings
+# os.environ['env_mode'] = 'prod'
+os.environ['env_mode'] = settings.env_mode
 from socials.apps.bots.awake import process_bot_awake
 from socials.apps.bots.bots import get_bots
 
