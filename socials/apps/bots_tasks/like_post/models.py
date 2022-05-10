@@ -14,7 +14,6 @@ default_date_finish: TaskDateFinish = TaskDateFinish(date = d)
 class LikePostTargetData(BaseModel):
     post_link: str
     like_count: int
-    like_random_threshold: int = 0
     work_lag: WorkLagEnum = WorkLagEnum.one_minute
     date_finish: TaskDateFinish = default_date_finish
 

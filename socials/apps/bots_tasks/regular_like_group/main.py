@@ -53,7 +53,7 @@ def regular_like_group_vk(
     # initialize wall instance
     wall = VkWall(
         client = client,
-        owner_id = -current_group.id
+        owner_id = -abs(current_group.id)
     )
     # try to get last n posts from wall
     try:
