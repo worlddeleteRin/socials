@@ -79,6 +79,7 @@ class CreateBotTask(BaseModel):
     # hidden fields
     delete_after_finished: bool = False
     is_hidden: bool = False
+    is_testing: bool = False
 
     @root_validator
     def validate_create_bot(cls, values):
@@ -118,6 +119,7 @@ class BotTask(BaseModel):
     bots_used: list[UUID4] = []
     delete_after_finished: bool = False
     is_hidden: bool = False
+    is_testing: bool = False
 
     def setFinished(self):
         self.status = BotTaskStatusEnum.finished
@@ -136,7 +138,7 @@ class BotTask(BaseModel):
             return True
         return False
 
-    def isRunning(self):
+    def isRunning(self) -> bool:
         return (
             self.status is BotTaskStatusEnum.running and
             self.is_active

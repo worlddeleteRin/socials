@@ -18,6 +18,8 @@ class RegularLikeGroupTargetData(BaseModel):
     check_frequency: WorkLagEnum = WorkLagEnum.ten_minutes
     # work_lag for each post like
     work_lag: WorkLagEnum = WorkLagEnum.one_minute
+    # is test task
+    is_testing: bool = False
 
     """ 
     @root_validator

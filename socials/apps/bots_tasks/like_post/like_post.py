@@ -65,7 +65,12 @@ def process_like_post_task(
     # wall print('bots for task are', bots)
     print('bots len is ', len(bots))
     logger.warning('run process like post task')
-    # run task based on platform type
+
+    if bot_task.is_testing:
+        return
+    """
+    Run task based on platform type
+    """
     if bot_task.platform == PlatformEnum.vk:
         # run on vk platform
         like_post_vk(
