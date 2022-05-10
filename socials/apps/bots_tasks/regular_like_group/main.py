@@ -27,7 +27,6 @@ def regular_like_group_vk(
     group_id = data.group_id
     posts_check_count = data.last_posts_check_count
     work_lag = data.work_lag
-    like_count = data.like_count
     last_posts_ids = metrics.processed_posts_ids
 
     # get random bot for default client
@@ -79,7 +78,7 @@ def regular_like_group_vk(
     for p in not_processed_posts:
         like_post_data = LikePostTargetData(
             post_link = p.get_vk_post_link(),
-            like_count = like_count,
+            like_count = data.get_like_count(),
             work_lag = work_lag
         )
         new_task = CreateBotTask(
@@ -140,7 +139,5 @@ def process_regular_like_group_task(
     task.next_run_timestamp = timestamp_now + (check_frequency_timestamp - timestamp_now)
     # update task in db
     task.update_db()
-
-
 
 
