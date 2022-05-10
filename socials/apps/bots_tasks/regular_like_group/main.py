@@ -90,7 +90,8 @@ def regular_like_group_vk(
             ),
             delete_after_finished = True,
             is_hidden = True,
-            is_active = True
+            is_active = True,
+            is_testing = data.is_testing
         )
         try:
             socials.apps.bots_tasks.main.create_bot_task(new_task=new_task)
