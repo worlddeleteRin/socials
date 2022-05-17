@@ -113,6 +113,8 @@ class Bot(BaseModel):
     username: str = ""
     password: str = ""
     access_token: str = ""
+    refresh_token: str = ""
+    expires_in: str = ""
     created_time: datetime = Field(default_factory=get_time_now)
     # bot platform data
     platform_data: BotPlatformData = BotPlatformData()
