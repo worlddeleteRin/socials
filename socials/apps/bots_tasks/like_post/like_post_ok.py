@@ -31,7 +31,7 @@ def like_post_ok(
     link = bot_task.task_target_data.like_post.post_link
     postUrlInfo = OkGroup.parseGroupTopicIdsFromUrl(url=link)
     if not postUrlInfo:
-        lge(OkErrorPostUrl.error_msg)
+        lge(f'link is, {link} {OkErrorPostUrl.error_msg}')
         bot_task.setError(OkErrorPostUrl)
         return
     # init def client
@@ -59,8 +59,9 @@ def like_post_ok(
         # set up client & user
         client = OkClient()
         user = OkUser(
-            username = bot.username,
-            password = bot.password
+            client=client,
+            username=bot.username,
+            password=bot.password
         )
         # check if bot can authorize
         canAuthorize = user.check_can_authorize_web_dirty()
