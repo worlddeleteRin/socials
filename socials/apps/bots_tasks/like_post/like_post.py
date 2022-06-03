@@ -37,7 +37,7 @@ def process_like_post_task(
     process_now_count = int((need_like_total - already_liked) / time_delimeter)
     if process_now_count < 1:
         process_now_count = 1
-    lgd(f'Need to set now likes: ${process_now_count}')
+    lgd(f'need to set now likes: {process_now_count}')
     # define bots search filters
     bot_filter_query = BotSearchQuery(
         is_active = True,
