@@ -131,6 +131,7 @@ class BotTask(BaseModel):
             self.remove_db()
 
     def setError(self, error: BotTaskError):
+        lge(error.error_msg)
         self.error = error
         self.status = BotTaskStatusEnum.error
         self.is_active = False
