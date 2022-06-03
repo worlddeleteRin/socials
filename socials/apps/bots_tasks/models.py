@@ -13,6 +13,7 @@ from pymongo import ReturnDocument
 from socials.apps.bots.models import PlatformEnum
 from socials.apps.bots_tasks.like_post.models import *
 from socials.apps.bots_tasks.enums import *
+from socials.logging import lgd,lgw,lge
 
 class BotTaskError(BaseModel):
     error_msg: str = ''
@@ -125,6 +126,7 @@ class BotTask(BaseModel):
         self.status = BotTaskStatusEnum.finished
         self.is_active = False
         self.next_run_timestamp = None
+        lgd('✅Bot task is finished')
         if self.delete_after_finished:
             self.remove_db()
 
@@ -163,7 +165,14 @@ class BotTask(BaseModel):
             return BotTask(**updated_bot)
         return None
 
+    def update_or_remove_db(self):
+        if self.delete_after_finished:
+            self.remove_db()
+            return
+        self.update_db()
+
     def remove_db(self):
+        lgd(f'removing task from database, id: {self.id}')
         db_provider.bots_tasks_db.delete_one(
             {"_id": self.id},
         )

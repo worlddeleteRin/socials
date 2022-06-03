@@ -31,6 +31,7 @@ def like_post_ok(
     link = bot_task.task_target_data.like_post.post_link
     postUrlInfo = OkGroup.parseGroupTopicIdsFromUrl(url=link)
     if not postUrlInfo:
+        lge(OkErrorPostUrl.error_msg)
         bot_task.setError(OkErrorPostUrl)
         return
     # init def client
@@ -64,6 +65,7 @@ def like_post_ok(
         # check if bot can authorize
         canAuthorize = user.check_can_authorize_web_dirty()
         if not canAuthorize:
+            lgw(f'cant auth user: {bot.id} : {bot.username}')
             bot.need_action = True
             bot.deactivate()
             bot.update_db()
@@ -78,6 +80,7 @@ def like_post_ok(
                 query=query
             )
         except Exception as e:
+            lge(f'error add like, resp is: {e}')
             bot_task.setError(
                 info_error(e)
             )
@@ -85,9 +88,7 @@ def like_post_ok(
 
         try:
             bot_task.bots_used.append(bot.id)
-            # add metrics TODO
             metrics.like_count += 1
-            # add bot event TODO
             event = BotEvent(
                 event_type = TaskTypeEnum.like_post, 
                 platform = PlatformEnum.ok,

@@ -7,16 +7,18 @@ from socials.apps.bots_tasks.models import BotTask
 from socials.apps.bots_tasks.task_errors import CantProceedTaskPlatform, NoBotsForTaskError
 from socials.apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
 
-from socials.logging import lgd,lgw
+from socials.logging import lgd,lgw,lge
 
 def process_like_post_task(
     bot_task: BotTask
 ):
     # return if not platform specified
     if not bot_task.platform:
+        lge('Error no task platform specified')
         return
     # return id not data for liked post
     if not bot_task.task_target_data.like_post:
+        lge('task target data not specified')
         return
     # if not metrics add, add it
     if not bot_task.task_result_metrics.like_post:
@@ -35,6 +37,7 @@ def process_like_post_task(
     process_now_count = int((need_like_total - already_liked) / time_delimeter)
     if process_now_count < 1:
         process_now_count = 1
+    lgd(f'Need to set now likes: ${process_now_count}')
     # define bots search filters
     bot_filter_query = BotSearchQuery(
         is_active = True,
@@ -50,18 +53,17 @@ def process_like_post_task(
     bot_search: BotSearch = get_bots(bot_filter_query)
     bots: list[Bot] = bot_search.bots
     # check if not bots stop task attach error
+    if len(bots) < process_now_count:
+        lgw(f'bots are lower than need to like - {len(bots)} {process_now_count}')
     if len(bots) == 0:
+        lge(NoBotsForTaskError.error_msg)
         bot_task.setError(NoBotsForTaskError)
         if bot_task.delete_after_finished:
             bot_task.remove_db()
         else:
             bot_task.update_db()
         return
-    # 
-    print('time delimeter is', time_delimeter)
-    print('need process now:', process_now_count)
-    # wall print('bots for task are', bots)
-    print('bots len is ', len(bots))
+
     lgd('run process like post task')
 
     if bot_task.is_testing:
@@ -89,10 +91,12 @@ def process_like_post_task(
         )
     else:
         # no platform found, add error
+        lge(CantProceedTaskPlatform.error_msg)
         bot_task.setError(CantProceedTaskPlatform)
-        bot_task.update_db()
+        bot_task.update_or_remove_db()
         return
     if not bot_task.isRunning():
+        lgw('task is not running')
         bot_task.update_db()
         return
     # get fresh data TODO: can be improved
@@ -106,12 +110,6 @@ def process_like_post_task(
     # set task finished if task completed
     if already_liked >= need_like_total:
         bot_task.setFinished()
-        """
-        if bot_task.delete_after_finished:
-            bot_task.remove_db()
-        else:
-            bot_task.update_db()
-        """
         bot_task.update_db()
         return
 
