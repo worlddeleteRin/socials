@@ -11,9 +11,7 @@ from ok_core.mediatopic.main import GetMediatopicByIdsQuery, OkMediatopicRespons
 from ok_core.mediatopic.main import OkMediatopic
 from ok_core.user.main import OkUser
 from socials.apps.bots_tasks.task_errors import OkErrorGetTopic, OkErrorPostUrl, info_error
-import logging
-
-logger = logging.getLogger(__name__)
+from socials.logging import lgd,lgw,lge
 
 
 def like_post_ok(
@@ -22,10 +20,11 @@ def like_post_ok(
     metrics: LikePostResultMetrics,
     bot_task: BotTask
 ):
-    logger.warning('run like post ok')
-    logger.warning(f'bots len is {len(bots)}')
+    lgd('run like post ok')
+    lgd(f'bots len is {len(bots)}')
     # check if target data specified
     if not bot_task.task_target_data.like_post:
+        lge(OkErrorGetTopic.error_msg)
         bot_task.setError(OkErrorGetTopic)
         return
     # check if can get topic post
@@ -46,7 +45,7 @@ def like_post_ok(
             query=topic_query
         )
     except Exception as e:
-        logger.warning(f'error get topic {e}')
+        lge(f'error get topic {e}')
         bot_task.setError(OkErrorGetTopic)
         return
 
@@ -56,12 +55,12 @@ def like_post_ok(
     )
 
     for bot in bots:
-        # set up client
+        # set up client & user
+        client = OkClient()
         user = OkUser(
             username = bot.username,
             password = bot.password
         )
-        client = OkClient(user=user)
         # check if bot can authorize
         canAuthorize = user.check_can_authorize_web_dirty()
         if not canAuthorize:
@@ -70,7 +69,7 @@ def like_post_ok(
             bot.update_db()
             continue
 
-        likes = OkLikes(client=client)
+        likes = OkLikes(client=client, user=user)
 
         # try to like post
         try:
@@ -103,5 +102,5 @@ def like_post_ok(
             # update bot last used
             bot.update_db(update_used=True)
         except Exception as e:
-            logger.warning(f'exception occured {e}')
+            lge(f'exception occured {e}')
             bot_task.setError(BotTaskError.dummy_error(e))

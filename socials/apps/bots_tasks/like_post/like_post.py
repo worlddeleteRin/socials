@@ -2,14 +2,12 @@ from socials.apps.bots.bots import get_bots
 from socials.apps.bots.models import Bot, BotSearch, BotSearchQuery, BotSortByEnum, PlatformEnum
 from socials.apps.bots_tasks.like_post.like_post_ok import like_post_ok
 from socials.apps.bots_tasks.like_post.like_post_vk import like_post_vk
-# from socials.apps.bots_events.models import BotEvent
-# from socials.apps.bots_tasks.enums import TaskTypeEnum
 from socials.apps.bots_tasks.like_post.models import LikePostResultMetrics, LikePostTargetData
 from socials.apps.bots_tasks.models import BotTask
 from socials.apps.bots_tasks.task_errors import CantProceedTaskPlatform, NoBotsForTaskError
 from socials.apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
-import logging
-logger = logging.getLogger(__name__)
+
+from socials.logging import lgd,lgw
 
 def process_like_post_task(
     bot_task: BotTask
@@ -64,9 +62,10 @@ def process_like_post_task(
     print('need process now:', process_now_count)
     # wall print('bots for task are', bots)
     print('bots len is ', len(bots))
-    logger.warning('run process like post task')
+    lgd('run process like post task')
 
     if bot_task.is_testing:
+        lgw('✔️ just success testing task, skipping it ...')
         return
     """
     Run task based on platform type

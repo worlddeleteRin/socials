@@ -1,5 +1,6 @@
 from socials.apps.bots_tasks.like_post.like_post import process_like_post_task
 from socials.database.main_db import db_provider
+from socials.logging import lgd, lgw
 from .models import *
 from .bots_tasks_exceptions import *
 # from socials.apps.bots.models import BotSearchQuery, Bot
@@ -149,7 +150,7 @@ def process_bot_task(
     """
     # check, if need to run task
     if not bot_task_check_need_run(bot_task):
-        print('task dont need to be run')
+        lgd('Task dont need to be run')
         return False
     # process like_post task
     if bot_task.task_type == TaskTypeEnum.like_post:
