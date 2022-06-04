@@ -1,35 +1,30 @@
-import os
-from socials.config import settings
-os.environ['env_mode'] = settings.env_mode
-import time
-from socials.apps.bots_tasks.models import *
-from socials.apps.bots_tasks.enums import *
-from socials.apps.bots_tasks.main import get_bot_tasks, process_bot_task
+from threading import Thread
 
-time_to_sleep = 3
+from run_tasks_vk import process_tasks as process_vk_tasks
+from run_tasks_ok import process_tasks as process_ok_tasks
+from socials.logging import lgd,lgw,lge
 
-def process_tasks():
-    print('run process tasks...')
-    try:
-        bot_tasks_query = BotTasksSearchQuery(
-            status = BotTaskStatusEnum.running,
-            is_active=True,
-            include_hidden=True
-        )
-        bot_tasks_search: BotTasksSearch = get_bot_tasks(
-            query = bot_tasks_query
-        )
-        # print('bot tasks are', bot_tasks_search.bot_tasks)
-        for bot_task in bot_tasks_search.bot_tasks:
-            process_bot_task(
-                bot_task
-            )
-    except Exception as e:
-        print('error while run process tasks', e)
-        pass
-    time.sleep(time_to_sleep)
-    # process_tasks()
+class VkTasksThread(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        lgd('** Starting vk tasks thread **')
+        while True:
+            process_vk_tasks()
+
+class OkTasksThread(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        lgd('** Starting ok tasks thread **')
+        while True:
+            process_ok_tasks()
 
 if __name__ == '__main__':
-    while True:
-        process_tasks()
+    vk_tasks = VkTasksThread()
+    ok_tasks = OkTasksThread()
+
+    vk_tasks.start()
+    ok_tasks.start()
