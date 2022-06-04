@@ -3,12 +3,8 @@ from socials.database.main_db import db_provider
 from socials.logging import lgd, lgw
 from .models import *
 from .bots_tasks_exceptions import *
-# from socials.apps.bots.models import BotSearchQuery, Bot
-# from socials.apps.bots.bots import get_bots
-
-# from socials.apps import bots_tasks
-
 import socials.apps.bots_tasks.regular_like_group.main
+from socials.logging import lgd,lgw,lge
 
 def get_tasks_types() -> list[TaskType]:
     tasks_types_dict = db_provider.tasks_types_db.find({})
@@ -48,6 +44,7 @@ def create_bot_task(
     task = BotTask(
         **new_task.dict(by_alias=True)
     )
+    lgd(f"Creating bot task: {task.id}")
     task.save_db()
 
 def get_bot_task_by_id(
