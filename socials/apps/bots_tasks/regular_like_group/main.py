@@ -1,8 +1,9 @@
 from socials.apps.bots.models import PlatformEnum
 from socials.apps.bots_tasks.models import BotTask
+from socials.apps.bots_tasks.regular_like_group.regular_like_group_ok import regular_like_group_ok
 from socials.apps.bots_tasks.regular_like_group.models import RegularLikeGroupResultMetrics, RegularLikeGroupTargetData
 from socials.apps.bots_tasks.regular_like_group.regular_like_group_vk import regular_like_group_vk
-from socials.apps.bots_tasks.task_errors import NoPlatformSpecified, NoTaskDataSpecified
+from socials.apps.bots_tasks.task_errors import NoPlatformSpecified, NoTaskDataSpecified, info_error
 from socials.apps.bots_tasks.utils import get_datetime_from_work_lag
 from socials.apps.site.utils import get_time_now_timestamp
 from socials.logging import lgd,lgw,lge
@@ -11,6 +12,7 @@ from socials.logging import lgd,lgw,lge
 def process_regular_like_group_task(
     task: BotTask
 ):
+    lgd("** Run process regular like group task **")
     if not task.platform: 
         task.setError(NoPlatformSpecified)
         return
@@ -32,6 +34,15 @@ def process_regular_like_group_task(
             data = data,
             metrics = metrics,
         )
+    elif task.platform == PlatformEnum.ok:
+        regular_like_group_ok(
+            task = task,
+            data = data,
+            metrics = metrics,
+        )
+    else:
+        task.setError(info_error("Platform is not implemented yet"))
+        return
     task.task_target_data.regular_like_group = data
     task.task_result_metrics.regular_like_group = metrics
     task.update_db()
