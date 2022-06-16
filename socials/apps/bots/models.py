@@ -5,6 +5,7 @@ from datetime import datetime
 
 from pymongo.results import InsertOneResult
 from socials.apps.bots.enums import CountryEnum
+from socials.apps.bots_tasks.enums import TaskTypeEnum
 from socials.apps.site.utils import get_time_now
 from typing import Optional
 
@@ -13,11 +14,22 @@ from pymongo import ReturnDocument
 
 from vk_core.users.main import VkUserModel
 
+
 @unique
 class PlatformEnum(str, Enum):
     vk = "vk"
     ok = "ok"
     instagram = "instagram"
+    yt = "youtube"
+
+selenium_tasks = {
+    TaskTypeEnum.like_post: [
+        PlatformEnum.ok
+    ],
+    TaskTypeEnum.watch_video: [
+        PlatformEnum.yt
+    ]
+}
 
 @unique
 class GenderEnum(str, Enum):
@@ -87,6 +99,8 @@ rate_limits = BotRateLimits(
     daily = dailyRateLimits,
     hourly = hourlyRateLimits
 )
+
+
 
 class BotPlatformData(BaseModel):
     vk: Optional[VkUserModel] = None

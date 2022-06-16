@@ -1,5 +1,8 @@
 from datetime import datetime
+from typing import Callable
 from socials.apps.bots_tasks.enums import WorkLagEnum
+from socials.apps.bots_tasks.models import BotTask
+from socials.apps.bots_tasks.task_errors import info_error
 from socials.apps.site.utils import get_time_now, get_time_now_timestamp
 
 
@@ -71,4 +74,13 @@ def calculate_next_time_run(
         return int(time_end)
     return int(next_time)
     
-
+"""
+def handle_task_exception(task: BotTask):
+    def inner(func: Callable):
+        def wrapper(*args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as e:
+                task.setError(info_error(e))
+    return inner
+"""

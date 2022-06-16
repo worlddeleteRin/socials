@@ -4,6 +4,7 @@ from socials.logging import lgd, lgw
 from .models import *
 from .bots_tasks_exceptions import *
 import socials.apps.bots_tasks.regular_like_group.main
+import socials.apps.bots_tasks.watch_video.main
 from socials.logging import lgd,lgw,lge
 
 def get_tasks_types() -> list[TaskType]:
@@ -44,6 +45,7 @@ def create_bot_task(
     task = BotTask(
         **new_task.dict(by_alias=True)
     )
+    task.check_selenium()
     lgd(f"Creating bot task: {task.id}")
     task.save_db()
 
@@ -155,5 +157,10 @@ def process_bot_task(
     # process regular_like_group task
     if bot_task.task_type == TaskTypeEnum.regular_like_group:
         socials.apps.bots_tasks.regular_like_group.main.process_regular_like_group_task(
+            bot_task
+        )
+    # process watch video task
+    if bot_task.task_type == TaskTypeEnum.watch_video:
+        socials.apps.bots_tasks.watch_video.main.process_watch_video_task(
             bot_task
         )

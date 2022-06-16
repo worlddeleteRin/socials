@@ -1,9 +1,22 @@
+from enum import Enum
 from typing import Any
 from socials.apps.bots_tasks.models import BotTaskError
 
 def info_error(error: Any):
     return BotTaskError(
         error_msg = f"{error}"
+    )
+
+class BotErrorsEnum(str, Enum):
+    no_platform_specified = 'Не указана платформа для таска'
+    no_task_data_specified = 'Не указаны данные для таска'
+
+class BotInfoEnum(str, Enum):
+    just_success_testing = '✔️ Просто удачный тестовый таск'
+
+def err(e: BotErrorsEnum):
+    return BotTaskError(
+        error_msg = e
     )
 
 NoBotsForTaskError = BotTaskError(

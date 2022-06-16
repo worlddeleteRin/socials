@@ -23,10 +23,10 @@ def process_like_post_task(
     # if not metrics add, add it
     if not bot_task.task_result_metrics.like_post:
         bot_task.task_result_metrics.like_post = LikePostResultMetrics()
+
     # assign values
     data: LikePostTargetData = bot_task.task_target_data.like_post
     metrics: LikePostResultMetrics = bot_task.task_result_metrics.like_post
-
     need_like_total: int = data.like_count
     already_liked: int =  metrics.like_count
     # get time delimeter

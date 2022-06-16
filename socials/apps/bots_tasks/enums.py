@@ -1,8 +1,10 @@
 from enum import Enum
 
+
 class TaskTypeEnum(str, Enum):
     like_post = 'like_post'
     repost_post = 'repost_post'
+    watch_video = 'watch_video'
     regular_like_group = 'regular_like_group'
     dummy = 'dummy'
 

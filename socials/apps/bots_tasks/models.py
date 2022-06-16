@@ -2,6 +2,7 @@ import uuid
 # from enum import Enum, unique
 from datetime import datetime
 from socials.apps.bots_tasks.regular_like_group.models import RegularLikeGroupResultMetrics, RegularLikeGroupTargetData
+from socials.apps.bots_tasks.watch_video.models import WatchVideoResultMetrics, WatchVideoTargetData
 from socials.apps.site.utils import get_time_now
 from pymongo.results import InsertOneResult
 from pydantic import BaseModel, Field, UUID4, root_validator
@@ -14,6 +15,7 @@ from socials.apps.bots.models import PlatformEnum
 from socials.apps.bots_tasks.like_post.models import *
 from socials.apps.bots_tasks.enums import *
 from socials.logging import lgd,lgw,lge
+from socials.apps.bots.models import selenium_tasks
 
 class BotTaskError(BaseModel):
     error_msg: str = ''
@@ -28,6 +30,7 @@ class TaskTargetData(BaseModel):
     Task target data model
     """
     like_post: Optional[LikePostTargetData] = None
+    watch_video: Optional[WatchVideoTargetData] = None
     regular_like_group: Optional[RegularLikeGroupTargetData] = None
 
 class TaskResultMetrics(BaseModel):
@@ -35,6 +38,7 @@ class TaskResultMetrics(BaseModel):
     Task result metrics data
     """
     like_post: Optional[LikePostResultMetrics] = None
+    watch_video: Optional[WatchVideoResultMetrics] = None
     regular_like_group: Optional[RegularLikeGroupResultMetrics] = None
 
 class TaskType(BaseModel):
@@ -81,6 +85,7 @@ class CreateBotTask(BaseModel):
     delete_after_finished: bool = False
     is_hidden: bool = False
     is_testing: bool = False
+    is_selenium: bool = False
 
     @root_validator
     def validate_create_bot(cls, values):
@@ -121,6 +126,7 @@ class BotTask(BaseModel):
     delete_after_finished: bool = False
     is_hidden: bool = False
     is_testing: bool = False
+    is_selenium: bool = False
 
     def setFinished(self):
         self.status = BotTaskStatusEnum.finished
@@ -130,11 +136,13 @@ class BotTask(BaseModel):
         if self.delete_after_finished:
             self.remove_db()
 
-    def setError(self, error: BotTaskError):
+    def setError(self, error: BotTaskError, update: bool = True):
         lge(error.error_msg)
         self.error = error
         self.status = BotTaskStatusEnum.error
         self.is_active = False
+        # mb make update or remove?
+        self.update_db()
 
     def hasError(self):
         if self.error:
@@ -178,6 +186,11 @@ class BotTask(BaseModel):
             {"_id": self.id},
         )
 
+    def check_selenium(self):
+        if self.task_type in selenium_tasks:
+            if self.platform in selenium_tasks[self.task_type]:
+                self.is_selenium = True
+
     class Config:
         allow_population_by_field_name = True
 
@@ -196,6 +209,7 @@ class BotTasksSearchQuery:
     is_active: bool | None
     status: BotTaskStatusEnum | None
     include_hidden: bool = False
+    include_selenium_tasks: bool = True
 
     def __init__(
         self,
@@ -205,7 +219,8 @@ class BotTasksSearchQuery:
         task_type: Optional[TaskTypeEnum] = None,
         is_active: Optional[bool] = None,
         status: Optional[BotTaskStatusEnum] = None,
-        include_hidden: bool = False
+        include_hidden: bool = False,
+        include_selenium_tasks: bool = True
     ):
         self.skip = skip
         self.limit = limit
@@ -214,6 +229,7 @@ class BotTasksSearchQuery:
         self.is_active = is_active
         self.status = status
         self.include_hidden = include_hidden
+        self.include_selenium_tasks = include_selenium_tasks
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -228,6 +244,8 @@ class BotTasksSearchQuery:
             filters['status'] = self.status
         if not (self.include_hidden):
             filters['is_hidden'] = False
+        if not self.include_selenium_tasks:
+            filters['is_selenium'] = False
 
         return filters
 

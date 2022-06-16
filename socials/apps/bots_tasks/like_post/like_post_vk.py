@@ -79,9 +79,9 @@ def like_post_vk(
         # add bot id to used
         try:
             bot_task.bots_used.append(bot.id)
-            # add metrics TODO
+            # add metrics 
             metrics.like_count += 1
-            # add bot event TODO
+            # add bot event
             event = BotEvent(
                 event_type = TaskTypeEnum.like_post, 
                 platform = PlatformEnum.vk,

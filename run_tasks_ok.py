@@ -9,14 +9,19 @@ from socials.logging import lgd,lgw,lge
 
 time_to_sleep = 3
 
-def process_tasks():
+def process_tasks(
+    include_selenium_tasks = False,
+    process_tasks_per_cycle = 10
+):
     lgd('** Run process ok tasks **')
     try:
         bot_tasks_query = BotTasksSearchQuery(
             platform = PlatformEnum.ok,
             status = BotTaskStatusEnum.running,
             is_active=True,
-            include_hidden=True
+            include_hidden=True,
+            limit=process_tasks_per_cycle,
+            include_selenium_tasks=include_selenium_tasks
         )
         bot_tasks_search: BotTasksSearch = get_bot_tasks(
             query = bot_tasks_query

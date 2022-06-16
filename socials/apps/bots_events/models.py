@@ -16,7 +16,7 @@ class BotEvent(BaseModel):
     timestamp: int = get_time_now_timestamp()
     event_type: TaskTypeEnum
     platform: PlatformEnum
-    bot_id: UUID4
+    bot_id: Optional[UUID4]
     task_id: Optional[UUID4] = None
     count_amount: int = 0
 
