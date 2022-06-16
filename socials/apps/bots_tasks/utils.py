@@ -1,9 +1,6 @@
 from datetime import datetime
-from typing import Callable
 from socials.apps.bots_tasks.enums import WorkLagEnum
-from socials.apps.bots_tasks.models import BotTask
-from socials.apps.bots_tasks.task_errors import info_error
-from socials.apps.site.utils import get_time_now, get_time_now_timestamp
+from socials.apps.site.utils import get_time_now_timestamp
 
 
 def get_time_left_delimeter_from_timestamp(
