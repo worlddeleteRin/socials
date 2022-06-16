@@ -20,6 +20,7 @@ imports
 exports
 vk_core
 ok_core
+yt_core
 .DS_Store
 dump
 tests
