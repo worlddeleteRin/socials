@@ -50,6 +50,7 @@ def process_watch_video_task(
         task.remove_db()
         return
 
+    # run task
     if task.platform == PlatformEnum.yt:
         # run on youtube platform
         watch_video_yt(
@@ -58,6 +59,7 @@ def process_watch_video_task(
             metrics=metrics,
             process_now=process_now_count
         )
+
     task.update_db()
     if task.hasError():
         task.update_or_remove_db()
