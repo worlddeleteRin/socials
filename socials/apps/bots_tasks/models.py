@@ -276,7 +276,7 @@ class BotTasksSearchQuery:
         is_active: Optional[bool] = None,
         status: Optional[BotTaskStatusEnum] = None,
         include_hidden: bool = False,
-        filter_by_selenium: bool = True,
+        filter_by_selenium: bool = False,
         include_selenium_tasks: bool = True
     ):
         self.skip = skip
