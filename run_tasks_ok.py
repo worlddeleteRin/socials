@@ -21,16 +21,20 @@ def process_tasks(
             is_active=True,
             include_hidden=True,
             limit=process_tasks_per_cycle,
+            filter_by_selenium=True,
             include_selenium_tasks=include_selenium_tasks
         )
         bot_tasks_search: BotTasksSearch = get_bot_tasks(
             query = bot_tasks_query
         )
         # print('bot tasks are', bot_tasks_search.bot_tasks)
-        for bot_task in bot_tasks_search.bot_tasks:
-            process_bot_task(
-                bot_task
-            )
+        if len(bot_tasks_search.bot_tasks) > 0:
+            for bot_task in bot_tasks_search.bot_tasks:
+                process_bot_task(
+                    bot_task
+                )
+        else:
+            lgd('NO tasks to run')
     except Exception as e:
         lge(f'error while run process tasks {e}')
         pass

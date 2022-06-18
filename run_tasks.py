@@ -57,7 +57,7 @@ class OkSeleniumTasksThread(Thread):
         while True:
             process_ok_tasks(
                 include_selenium_tasks=True,
-                process_tasks_per_cycle=1
+                process_tasks_per_cycle=10
             )
 
 class YtTasksThread(Thread):

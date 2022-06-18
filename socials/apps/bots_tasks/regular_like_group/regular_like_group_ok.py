@@ -62,20 +62,33 @@ def regular_like_group_ok(
             "Cant get group post ids"
         ))
         return
+    lgd(f'post ids are {post_ids}')
     # filter for post that not processed
+    not_processed = []
+    for item in post_ids:
+        if str(item) not in last_posts_ids:
+            not_processed.append(str(item))
+
+    lgd(f'last processed posts ids {last_posts_ids}')
+    lgd(f'Not processed posts {not_processed}')
+
+    """
     not_processed = [
         id for id in post_ids if id not in last_posts_ids
     ]
+    """
+
     # add new post ids to processed
-    metrics.processed_posts_ids = not_processed
+    metrics.processed_posts_ids = post_ids 
     if len(not_processed) == 0:
         lgd('All posts are processed')
         return
 
     # create like task for each not processed post
-    for id in not_processed:
+    for item in not_processed:
+        lgd(f'creating post for target post id: {item}')
         like_post_data = LikePostTargetData(
-            post_link=group.makeGroupTopicUrl(id),
+            post_link=group.makeGroupTopicUrl(item),
             like_count = data.get_like_count(),
             work_lag = work_lag
         )

@@ -50,7 +50,7 @@ class TaskResultMetrics(BaseModel):
 
     @validator('regular_like_group', pre=True, always=True, check_fields=False)
     def validate_regular_like_group(cls, v):
-        if not isinstance(v, RegularLikeGroupResultMetrics):
+        if not v:
             return RegularLikeGroupResultMetrics()
         return v
 
@@ -140,6 +140,12 @@ class BotTask(BaseModel):
     is_hidden: bool = False
     is_testing: bool = False
     is_selenium: bool = False
+
+    @validator('is_selenium', pre=True, always=True)
+    def valid_is_selenium(cls, v):
+        if not v:
+            return False
+        return v
 
     @staticmethod
     def get_bot_task_by_id(
@@ -258,6 +264,7 @@ class BotTasksSearchQuery:
     is_active: bool | None
     status: BotTaskStatusEnum | None
     include_hidden: bool = False
+    filter_by_selenium: bool = False
     include_selenium_tasks: bool = True
 
     def __init__(
@@ -269,6 +276,7 @@ class BotTasksSearchQuery:
         is_active: Optional[bool] = None,
         status: Optional[BotTaskStatusEnum] = None,
         include_hidden: bool = False,
+        filter_by_selenium: bool = True,
         include_selenium_tasks: bool = True
     ):
         self.skip = skip
@@ -278,6 +286,7 @@ class BotTasksSearchQuery:
         self.is_active = is_active
         self.status = status
         self.include_hidden = include_hidden
+        self.filter_by_selenium = filter_by_selenium
         self.include_selenium_tasks = include_selenium_tasks
 
     def collect_db_filters_query(self) -> dict:
@@ -293,8 +302,8 @@ class BotTasksSearchQuery:
             filters['status'] = self.status
         if not (self.include_hidden):
             filters['is_hidden'] = False
-        if not self.include_selenium_tasks:
-            filters['is_selenium'] = False
+        if self.filter_by_selenium:
+            filters['is_selenium'] = self.include_selenium_tasks
 
         return filters
 
