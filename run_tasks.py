@@ -48,6 +48,18 @@ class OkTasksThread(Thread):
         while True:
             process_ok_tasks(include_selenium_tasks=False)
 
+class OkSeleniumTasksThread(Thread):
+    def __init__(self):
+        Thread.__init__(self)
+
+    def run(self):
+        lgd('** Starting youtube SELENIUM tasks thread **')
+        while True:
+            process_ok_tasks(
+                include_selenium_tasks=True,
+                process_tasks_per_cycle=1
+            )
+
 class YtTasksThread(Thread):
     def __init__(self):
         Thread.__init__(self)
@@ -94,7 +106,10 @@ if __name__ == '__main__':
             for i in range(0,selenium_yt_threads):
                 yt_tasks = YtSeleniumTasksThread()
                 selenium_platforms.append(yt_tasks)
-
+        if PlatformEnum.ok in run_platforms_selenium:
+            for i in range(0,1):
+                ok_tasks = OkSeleniumTasksThread()
+                selenium_platforms.append(ok_tasks)
     
     lgd(f'Attempting to start {len(platforms)} platforms tasks & {len(selenium_platforms)} selenium platforms tasks')
     # start platforms
