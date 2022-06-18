@@ -8,11 +8,11 @@ from fastapi.staticfiles import StaticFiles
 from socials.config import settings
 
 # routes importing
-from socials.apps.products import router as products_router
+# from socials.apps.products import router as products_router
 from socials.apps.users import router as users_router
-from socials.apps.orders import router as orders_router
-from socials.apps.cart import router as cart_router
-from socials.apps.coupons import router as coupons_router
+# from socials.apps.orders import router as orders_router
+# from socials.apps.cart import router as cart_router
+# from socials.apps.coupons import router as coupons_router
 from socials.apps.site import router as site_router
 from socials.apps.bots import router as bots_router
 from socials.apps.bots_tasks import router as bots_tasks_router
@@ -46,11 +46,11 @@ app.add_middleware(
 
 
 # include app routes
-app.include_router(products_router.router)
+# app.include_router(products_router.router)
 app.include_router(users_router.router)
-app.include_router(orders_router.router)
-app.include_router(cart_router.router)
-app.include_router(coupons_router.router)
+# app.include_router(orders_router.router)
+# app.include_router(cart_router.router)
+# app.include_router(coupons_router.router)
 app.include_router(site_router.router)
 app.include_router(bots_router.router)
 app.include_router(bots_tasks_router.router)
