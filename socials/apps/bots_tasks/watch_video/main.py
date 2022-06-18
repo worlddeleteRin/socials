@@ -41,6 +41,7 @@ def process_watch_video_task(
     )
     # count need process now 
     process_now_count = int((need_watch_count - already_watched) / time_delimeter)
+    lgd(f'process now count is {process_now_count}')
     if process_now_count < 1:
         process_now_count = 1
 
@@ -60,7 +61,7 @@ def process_watch_video_task(
             process_now=process_now_count
         )
 
-    task.update_db()
+    # task.update_db()
     if task.hasError():
         task.update_or_remove_db()
         return
@@ -77,4 +78,5 @@ def process_watch_video_task(
     )
     task.next_run_timestamp = next_time_run
     # update bot db
-    task.update_db()
+    lgd(f'out of scope task metrics watch count: {task.task_result_metrics.watch_video.watch_count}')
+    task.update_db(update_metrics=False)

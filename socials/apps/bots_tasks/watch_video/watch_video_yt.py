@@ -6,6 +6,7 @@ from socials.apps.bots_tasks.task_errors import info_error
 from socials.apps.bots_tasks.watch_video.models import WatchVideoResultMetrics, WatchVideoTargetData
 from yt_core.videos.main import YtVideo
 from yt_core.videos.models import SeleniumWatchVideoParams
+from socials.logging import lgd
 
 
 def watch_video_yt(
@@ -21,7 +22,8 @@ def watch_video_yt(
     q = SeleniumWatchVideoParams(
         instances_count=instances_count,
         video_link=data.video_link,
-        watch_time=data.watch_second
+        watch_time=data.watch_second,
+        headless=False
     )
     try:
         YtVideo.selenium_watch_video(q)
@@ -29,7 +31,12 @@ def watch_video_yt(
         task.setError(info_error(e))
         return
     # set metrics after task done
+    task.sync_metrics()
+    metrics = task.task_result_metrics.watch_video
     metrics.watch_count += instances_count
+    task.update_db()
+    lgd(f'local metrics count: {metrics.watch_count}')
+    lgd(f'local TASK metrics count: {metrics.watch_count}')
     # add event
     event = BotEvent(
         event_type = TaskTypeEnum.watch_video, 

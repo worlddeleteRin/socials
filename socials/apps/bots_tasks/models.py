@@ -16,6 +16,7 @@ from socials.apps.bots_tasks.like_post.models import *
 from socials.apps.bots_tasks.enums import *
 from socials.logging import lgd,lgw,lge
 from socials.apps.bots.models import selenium_tasks
+# import socials.apps
 
 class BotTaskError(BaseModel):
     error_msg: str = ''
@@ -37,9 +38,21 @@ class TaskResultMetrics(BaseModel):
     """
     Task result metrics data
     """
-    like_post: Optional[LikePostResultMetrics] = None
-    watch_video: Optional[WatchVideoResultMetrics] = None
-    regular_like_group: Optional[RegularLikeGroupResultMetrics] = None
+    like_post: LikePostResultMetrics = LikePostResultMetrics()
+    watch_video: WatchVideoResultMetrics = WatchVideoResultMetrics()
+    regular_like_group: RegularLikeGroupResultMetrics = RegularLikeGroupResultMetrics()
+
+    @validator('like_post', pre=True, always=True, check_fields=False)
+    def validate_like_post(cls, v):
+        if not isinstance(v, LikePostResultMetrics):
+            return LikePostResultMetrics()
+        return v
+
+    @validator('regular_like_group', pre=True, always=True, check_fields=False)
+    def validate_regular_like_group(cls, v):
+        if not isinstance(v, RegularLikeGroupResultMetrics):
+            return RegularLikeGroupResultMetrics()
+        return v
 
 class TaskType(BaseModel):
     """
@@ -128,6 +141,21 @@ class BotTask(BaseModel):
     is_testing: bool = False
     is_selenium: bool = False
 
+    @staticmethod
+    def get_bot_task_by_id(
+        id: UUID4
+    ):
+        bot_task_raw = db_provider.bots_tasks_db.find_one(
+            {"_id": id}
+        )
+        try:
+            if (bot_task_raw):
+                bot_task = BotTask(**bot_task_raw)
+                return bot_task
+            return None
+        except:
+            return None
+
     def setFinished(self):
         self.status = BotTaskStatusEnum.finished
         self.is_active = False
@@ -136,13 +164,14 @@ class BotTask(BaseModel):
         if self.delete_after_finished:
             self.remove_db()
 
-    def setError(self, error: BotTaskError, update: bool = True):
+    def setError(self, error: BotTaskError, update: bool = False):
         lge(error.error_msg)
         self.error = error
         self.status = BotTaskStatusEnum.error
         self.is_active = False
         # mb make update or remove?
-        self.update_db()
+        if update:
+            self.update_db()
 
     def hasError(self):
         if self.error:
@@ -158,16 +187,36 @@ class BotTask(BaseModel):
     def isFinished(self):
         return self.status is BotTaskStatusEnum.finished
 
+
+    def sync_metrics(self):
+        fresh_task = self.get_fresh()
+        if fresh_task:
+            self.task_result_metrics = TaskResultMetrics(**fresh_task.task_result_metrics.dict())
+
+    def get_fresh(self):
+        return self.get_bot_task_by_id(
+            self.id
+        )
+
     def save_db(self) -> InsertOneResult | None:
         inserted_bot: InsertOneResult = db_provider.bots_tasks_db.insert_one(self.dict(by_alias=True)
         )
         return inserted_bot or None
 
-    def update_db(self):
+    def update_db(
+        self,
+        update_metrics: bool = True
+    ):
+        exclude={}
+        if not update_metrics:
+            exclude = {"task_result_metrics"}
         self.updated_date = get_time_now()
         updated_bot = db_provider.bots_tasks_db.find_one_and_update(
             {"_id": self.id},
-            {"$set": self.dict(by_alias=True)},
+            {"$set": self.dict(
+                by_alias=True,
+                exclude=exclude
+            )},
             return_document=ReturnDocument.AFTER
         )
         if updated_bot:
