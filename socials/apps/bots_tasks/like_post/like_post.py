@@ -66,10 +66,12 @@ def process_like_post_task(
 
     lgd('run process like post task')
 
+    """
     if bot_task.is_testing:
         lgw('✔️ just success testing task, removing it ...')
         bot_task.remove_db()
         return
+    """
     """
     Run task based on platform type
     """

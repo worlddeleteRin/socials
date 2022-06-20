@@ -74,8 +74,9 @@ def like_post_vk(
             continue
 
         # try to like post
-        response = Likes(client = client).add(query = likeQuery)
-        print('response is', response)
+        if not bot_task.is_testing:
+            response = Likes(client = client).add(query = likeQuery)
+            print('response is', response)
         # add bot id to used
         try:
             bot_task.bots_used.append(bot.id)

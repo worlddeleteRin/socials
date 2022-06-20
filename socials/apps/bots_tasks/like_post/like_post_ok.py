@@ -64,32 +64,38 @@ def like_post_ok(
             password=bot.password
         )
         # check if bot can authorize
-        canAuthorize = user.check_can_authorize_web_dirty()
-        if not canAuthorize:
-            lgw(f'cant auth user: {bot.id} : {bot.username}')
-            bot.need_action = True
-            bot.deactivate()
-            bot.update_db()
-            continue
+        if not bot_task.is_testing:
+            canAuthorize = user.check_can_authorize_web_dirty()
+            if not canAuthorize:
+                lgw(f'cant auth user: {bot.id} : {bot.username}')
+                bot.need_action = True
+                bot.deactivate()
+                bot.update_db()
+                continue
 
         likes = OkLikes(client=client, user=user)
 
-        # try to like post
-        try:
-            likes.add(
-                provider=OkAddLikeProviderEnum.selenium,
-                query=query
-            )
-        except Exception as e:
-            lge(f'error add like, resp is: {e}')
-            bot_task.setError(
-                info_error(e)
-            )
-            return
+        if not bot_task.is_testing:
+            # try to like post
+            try:
+                likes.add(
+                    provider=OkAddLikeProviderEnum.selenium,
+                    query=query
+                )
+            except Exception as e:
+                lge(f'error add like, resp is: {e}')
+                bot_task.setError(
+                    info_error(e)
+                )
+                return
 
         try:
             bot_task.bots_used.append(bot.id)
+            # add metrics
+            bot_task.sync_metrics()
+            metrics = bot_task.task_result_metrics.like_post
             metrics.like_count += 1
+            bot_task.update_db()
             event = BotEvent(
                 event_type = TaskTypeEnum.like_post, 
                 platform = PlatformEnum.ok,

@@ -44,7 +44,7 @@ class TaskResultMetrics(BaseModel):
 
     @validator('like_post', pre=True, always=True, check_fields=False)
     def validate_like_post(cls, v):
-        if not isinstance(v, LikePostResultMetrics):
+        if not v:
             return LikePostResultMetrics()
         return v
 
