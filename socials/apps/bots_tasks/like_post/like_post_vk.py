@@ -80,7 +80,10 @@ def like_post_vk(
         try:
             bot_task.bots_used.append(bot.id)
             # add metrics 
+            bot_task.sync_metrics()
+            metrics = bot_task.task_result_metrics.like_post
             metrics.like_count += 1
+            bot_task.update_db()
             # add bot event
             event = BotEvent(
                 event_type = TaskTypeEnum.like_post, 
@@ -90,6 +93,7 @@ def like_post_vk(
                 count_amount = 1
             )
             event.save_db()
+            # TODO need sync
             # update bot metrics like_count
             bot.daily_metrics.like_count += 1
             bot.hourly_metrics.like_count += 1
