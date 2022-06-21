@@ -16,6 +16,7 @@ from socials.apps.users import router as users_router
 from socials.apps.site import router as site_router
 from socials.apps.bots import router as bots_router
 from socials.apps.bots_tasks import router as bots_tasks_router
+from socials.apps.bots_events import router as bots_events_router
 
 from socials.apps.cart.cart import create_session_id
 # eof routes importing
@@ -54,6 +55,7 @@ app.include_router(users_router.router)
 app.include_router(site_router.router)
 app.include_router(bots_router.router)
 app.include_router(bots_tasks_router.router)
+app.include_router(bots_events_router.router)
 
 @app.on_event('startup')
 async def startup_db_client():
