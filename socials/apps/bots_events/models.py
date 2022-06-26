@@ -13,7 +13,7 @@ import uuid
 from socials.database.main_db import db_provider
 
 class BotEvent(BaseModel):
-    id: UUID4 = Field(default_factory=uuid.uuid4, alias="_id")
+    id: UUID4 = Field(default_factory=uuid.uuid4)
     timestamp: int = get_time_now_timestamp()
     date: datetime = Field(default_factory=get_time_now)
     event_type: TaskTypeEnum

@@ -56,7 +56,7 @@ def get_bot_task_by_id(
     id: UUID4
 ) -> BotTask | None:
     bot_task_raw = db_provider.bots_tasks_db.find_one(
-        {"_id": id}
+        {"id": id}
     )
     try:
         if (bot_task_raw):

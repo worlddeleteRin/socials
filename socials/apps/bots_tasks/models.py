@@ -124,7 +124,7 @@ class BotTask(BaseModel):
     """
         Base bot account model
     """
-    id: UUID4 = Field(default_factory=uuid.uuid4, alias="_id")
+    id: UUID4 = Field(default_factory=uuid.uuid4)
     is_active: bool = True
     status: BotTaskStatusEnum = BotTaskStatusEnum.running
     created_date: datetime = Field(default_factory=get_time_now)
@@ -153,7 +153,7 @@ class BotTask(BaseModel):
         id: UUID4
     ):
         bot_task_raw = db_provider.bots_tasks_db.find_one(
-            {"_id": id}
+            {"id": id}
         )
         try:
             if (bot_task_raw):
@@ -219,7 +219,7 @@ class BotTask(BaseModel):
             exclude = {"task_result_metrics"}
         self.updated_date = get_time_now()
         updated_bot = db_provider.bots_tasks_db.find_one_and_update(
-            {"_id": self.id},
+            {"id": self.id},
             {"$set": self.dict(
                 by_alias=True,
                 exclude=exclude
@@ -239,7 +239,7 @@ class BotTask(BaseModel):
     def remove_db(self):
         lgd(f'removing task from database, id: {self.id}')
         db_provider.bots_tasks_db.delete_one(
-            {"_id": self.id},
+            {"id": self.id},
         )
 
     def check_selenium(self):

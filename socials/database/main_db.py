@@ -1,9 +1,13 @@
 # from fastapi import FastAPI from functools import lru_cache
 from functools import lru_cache
+import bson
+from bson.binary import UuidRepresentation
+from bson.codec_options import CodecOptions
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
+import pytz
 
 from socials.config import settings
 
@@ -45,9 +49,16 @@ class DbProvider(BaseModel):
 @lru_cache
 def setup_db_main() -> DbProvider:
     print('call setup db_main function')
-    db_client  = MongoClient(
+    codecs: CodecOptions = CodecOptions(
+        tz_aware=True,
+        tzinfo=pytz.timezone('Europe/Moscow'),
+        uuid_representation=UuidRepresentation.STANDARD
+    )
+    db_client = MongoClient(
         settings.DB_URL,
-        uuidRepresentation = 'pythonLegacy'
+        UuidRepresentation = 'standard'
+        # UuidRepresentation = 'unspecified'
+        # UuidRepresentation = 'pythonLegacy'
     )
     db_main = db_client[settings.DB_NAME]
     db_provider = DbProvider(
@@ -69,8 +80,14 @@ def setup_db_main() -> DbProvider:
                 menu_links_db = db_main["menu_links"],
                 main_sliders_db = db_main["main_sliders"],
                 bonuses_levels_db = db_main["bonuses_levels"],
-                bots_db = db_main["bots"],
-                bots_tasks_db = db_main["bots_tasks"],
+                # bots_db = db_main["bots"],
+                bots_db = db_main.get_collection( 
+                    "bots", codec_options=codecs
+                ),
+                # bots_tasks_db = db_main["bots_tasks"],
+                bots_tasks_db = db_main.get_collection( 
+                    "bots_tasks", codec_options=codecs
+                ),
                 bots_events_db = db_main["bots_events"],
                 tasks_types_db = db_main["tasks_types"]
             )

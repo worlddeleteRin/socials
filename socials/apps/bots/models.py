@@ -173,6 +173,16 @@ class Bot(BaseModel):
             return Bot(**updated_bot)
         return None
 
+    def replace_db(self):
+        replaced_bot = db_provider.bots_db.find_one_and_replace(
+            {"id": self.id},
+            self.dict(by_alias=True),
+            return_document=ReturnDocument.AFTER
+        )
+        if replaced_bot:
+            # return Bot(**replaced_bot)
+            return replaced_bot
+
     def remove_db(self):
         db_provider.bots_db.delete_one(
             {"id": self.id},

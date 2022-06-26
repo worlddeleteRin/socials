@@ -1,6 +1,6 @@
 from datetime import datetime
 from socials.apps.bots_tasks.enums import WorkLagEnum
-from socials.apps.site.utils import get_time_now_timestamp
+from socials.apps.site.utils import get_time_fromtimestamp, get_time_now, get_time_now_timestamp
 
 
 def get_time_left_delimeter_from_timestamp(
@@ -33,7 +33,7 @@ def get_datetime_from_work_lag(
 ) -> datetime:
     seconds = 0
     if lag == WorkLagEnum.immediately:
-        return datetime.now()
+        return get_time_now()
     if lag == WorkLagEnum.one_minute:
         seconds = 60
     if lag == WorkLagEnum.five_minutes:
@@ -56,9 +56,9 @@ def get_datetime_from_work_lag(
         seconds = 1 * 7 * 24 * 60 * 60
     if lag == WorkLagEnum.one_month:
         seconds = 1 * 30 * 24 * 60 * 60
-    timestamp = int(datetime.now().timestamp())
+    timestamp = get_time_now_timestamp()
     final_timestamp = timestamp + seconds
-    date = datetime.fromtimestamp(final_timestamp)
+    date = get_time_fromtimestamp(final_timestamp)
     return date
 
 def calculate_next_time_run(
