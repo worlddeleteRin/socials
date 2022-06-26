@@ -7,6 +7,8 @@ def get_time_left_delimeter_from_timestamp(
     time_end: int
 ) -> int:
     time_now: int = get_time_now_timestamp()
+    if time_now > time_end:
+        return 1
     time_left_seconds: int = time_end - time_now 
     time_left_minutes: int = int(time_left_seconds / 60)
     time_left_hours: int = int(time_left_minutes / 60)
@@ -18,9 +20,13 @@ def get_time_left_delimeter_from_timestamp(
         return time_left_hours
     if time_left_minutes > 1:
         return time_left_minutes
+    return 1
+    # return 1 delimeter if time left is less than 1 minute
+    """
     if time_left_seconds < 1:
         return 1
     return time_left_seconds
+    """
 
 def get_datetime_from_work_lag(
     lag: WorkLagEnum
@@ -70,7 +76,7 @@ def calculate_next_time_run(
     if next_time > time_end:
         return int(time_end)
     return int(next_time)
-    
+
 """
 def handle_task_exception(task: BotTask):
     def inner(func: Callable):

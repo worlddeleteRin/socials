@@ -4,6 +4,7 @@ from socials.apps.bots_tasks.task_errors import BotErrorsEnum, BotInfoEnum, NoPl
 from socials.apps.bots_tasks.utils import calculate_next_time_run, get_time_left_delimeter_from_timestamp
 from socials.apps.bots_tasks.watch_video.models import WatchVideoResultMetrics, WatchVideoTargetData
 from socials.apps.bots_tasks.watch_video.watch_video_yt import watch_video_yt
+from socials.apps.site.utils import get_time_now
 from socials.logging import lgd,lgw,lge
 
 
@@ -41,6 +42,8 @@ def process_watch_video_task(
     )
     # count need process now 
     process_now_count = int((need_watch_count - already_watched) / time_delimeter)
+    lgd(f'date finish: {data.date_finish}, now: {get_time_now()}')
+    lgd(f'need: {need_watch_count}, watched: {already_watched}, delimeter: {time_delimeter}')
     lgd(f'process now count is {process_now_count}')
     if process_now_count < 1:
         process_now_count = 1
@@ -80,6 +83,8 @@ def process_watch_video_task(
         time_end = data.date_finish.int_timestamp(),
         need_make = data.watch_count - metrics.watch_count,
     )
+    lgd(f'Time end: {data.date_finish}')
+    lgd(f'Next time run: {next_time_run}')
     task.next_run_timestamp = next_time_run
     # update bot db
     lgd(f'out of scope task metrics watch count: {task.task_result_metrics.watch_video.watch_count}')
