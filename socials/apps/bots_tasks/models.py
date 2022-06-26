@@ -7,6 +7,7 @@ from socials.apps.site.utils import get_time_now
 from pymongo.results import InsertOneResult
 from pydantic import BaseModel, Field, UUID4, root_validator
 from typing import Any, Optional
+from socials.database.enums import SortingOrder
 
 from socials.database.main_db import db_provider
 from pymongo import ReturnDocument
@@ -266,6 +267,8 @@ class BotTasksSearchQuery:
     include_hidden: bool = False
     filter_by_selenium: bool = False
     include_selenium_tasks: bool = True
+    sort_by_created_date: int | None
+    sort_by_updated_date: SortingOrder | None
 
     def __init__(
         self,
@@ -277,7 +280,9 @@ class BotTasksSearchQuery:
         status: Optional[BotTaskStatusEnum] = None,
         include_hidden: bool = False,
         filter_by_selenium: bool = False,
-        include_selenium_tasks: bool = True
+        include_selenium_tasks: bool = True,
+        sort_by_created_date: Optional[int] = None,
+        sort_by_updated_date: Optional[SortingOrder] = None
     ):
         self.skip = skip
         self.limit = limit
@@ -288,6 +293,8 @@ class BotTasksSearchQuery:
         self.include_hidden = include_hidden
         self.filter_by_selenium = filter_by_selenium
         self.include_selenium_tasks = include_selenium_tasks
+        self.sort_by_created_date = sort_by_created_date
+        self.sort_by_updated_date = sort_by_updated_date
 
     def collect_db_filters_query(self) -> dict:
         filters = {}
@@ -306,4 +313,14 @@ class BotTasksSearchQuery:
             filters['is_selenium'] = self.include_selenium_tasks
 
         return filters
+
+    def collect_db_sort_query(self) -> list:
+        sort = []
+
+        if self.sort_by_created_date:
+            sort.append(('created_date', self.sort_by_created_date))
+        if self.sort_by_updated_date:
+            sort.append(('updated_date', self.sort_by_updated_date))
+
+        return sort 
 

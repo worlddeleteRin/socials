@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class TaskTypeEnum(str, Enum):
     like_post = 'like_post'
     repost_post = 'repost_post'

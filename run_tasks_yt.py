@@ -21,7 +21,8 @@ def process_tasks(
             is_active=True,
             include_hidden=True,
             limit=process_tasks_per_cycle,
-            include_selenium_tasks=include_selenium_tasks
+            include_selenium_tasks=include_selenium_tasks,
+            sort_by_updated_date=SortingOrder.ascending
         )
         bot_tasks_search: BotTasksSearch = get_bot_tasks(
             query = bot_tasks_query

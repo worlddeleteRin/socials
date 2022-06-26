@@ -23,20 +23,22 @@ def watch_video_yt(
         instances_count=instances_count,
         video_link=data.video_link,
         watch_time=data.watch_second,
-        headless=False
+        headless=True
     )
-    try:
-        YtVideo.selenium_watch_video(q)
-    except Exception as e:
-        task.setError(info_error(e))
-        return
+
+    if not task.is_testing:
+        try:
+            YtVideo.selenium_watch_video(q)
+        except Exception as e:
+            task.setError(info_error(e))
+            return
+    else:
+        lgd('** Simulate video watch, task is testing **')
     # set metrics after task done
     task.sync_metrics()
     metrics = task.task_result_metrics.watch_video
     metrics.watch_count += instances_count
     task.update_db()
-    lgd(f'local metrics count: {metrics.watch_count}')
-    lgd(f'local TASK metrics count: {metrics.watch_count}')
     # add event
     event = BotEvent(
         event_type = TaskTypeEnum.watch_video, 

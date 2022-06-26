@@ -28,10 +28,13 @@ def get_bot_tasks(
     query: BotTasksSearchQuery
 ) -> BotTasksSearch:
     filters: dict = query.collect_db_filters_query()
+    sort: list = query.collect_db_sort_query()
     bot_tasks_total_count = db_provider.bots_tasks_db.count_documents({})
     bot_tasks_raw = db_provider.bots_tasks_db.find(
         filters
-    ).skip(query.skip).limit(query.limit).sort('created_date', -1)
+    ).skip(query.skip).limit(query.limit)
+    if len(sort) > 0:
+        bot_tasks_raw = bot_tasks_raw.sort(sort)
     bot_tasks: list[BotTask] = [BotTask(**task) for task in bot_tasks_raw]
     bot_tasks_search = BotTasksSearch(
         bot_tasks=bot_tasks,

@@ -45,21 +45,25 @@ def process_watch_video_task(
     if process_now_count < 1:
         process_now_count = 1
 
+    """
     # handle testing task
     if task.is_testing:
         lgd(BotInfoEnum.just_success_testing)
         task.remove_db()
         return
+    """
 
     # run task
     if task.platform == PlatformEnum.yt:
         # run on youtube platform
-        watch_video_yt(
+       watch_video_yt(
             task=task,
             data=data,
             metrics=metrics,
             process_now=process_now_count
         )
+
+    metrics = task.task_result_metrics.watch_video
 
     # task.update_db()
     if task.hasError():
