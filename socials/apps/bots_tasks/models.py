@@ -35,6 +35,12 @@ class TaskTargetData(BaseModel):
     watch_video: Optional[WatchVideoTargetData] = None
     regular_like_group: Optional[RegularLikeGroupTargetData] = None
 
+    def on_create(self):
+        if self.watch_video:
+            self.watch_video.on_create()
+        if self.like_post:
+            self.like_post.on_create()
+
 class TaskResultMetrics(BaseModel):
     """
     Task result metrics data
@@ -194,6 +200,8 @@ class BotTask(BaseModel):
     def isFinished(self):
         return self.status is BotTaskStatusEnum.finished
 
+    def on_create(self):
+        self.task_target_data.on_create()
 
     def sync_metrics(self):
         fresh_task = self.get_fresh()
@@ -206,6 +214,7 @@ class BotTask(BaseModel):
         )
 
     def save_db(self) -> InsertOneResult | None:
+        self.on_create()
         inserted_bot: InsertOneResult = db_provider.bots_tasks_db.insert_one(self.dict(by_alias=True)
         )
         return inserted_bot or None

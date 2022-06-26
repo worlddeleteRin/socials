@@ -1,18 +1,16 @@
 # from fastapi import FastAPI from functools import lru_cache
 from functools import lru_cache
-import bson
+# import bson
 from bson.binary import UuidRepresentation
 from bson.codec_options import CodecOptions
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
-import pytz
 
 from socials.config import settings
 
 from pydantic import BaseModel
-
 # from bson.binary import UuidRepresentation
 
 
@@ -50,13 +48,12 @@ class DbProvider(BaseModel):
 def setup_db_main() -> DbProvider:
     print('call setup db_main function')
     codecs: CodecOptions = CodecOptions(
-        tz_aware=True,
-        tzinfo=pytz.timezone('Europe/Moscow'),
         uuid_representation=UuidRepresentation.STANDARD
     )
     db_client = MongoClient(
         settings.DB_URL,
-        UuidRepresentation = 'standard'
+        UuidRepresentation = 'standard',
+        tz_aware=False
         # UuidRepresentation = 'unspecified'
         # UuidRepresentation = 'pythonLegacy'
     )

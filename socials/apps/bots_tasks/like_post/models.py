@@ -32,10 +32,12 @@ class LikePostTargetData(BaseModel):
         if work_lag == WorkLagEnum.custom_date:
             if not isinstance(date_finish, TaskDateFinish):
                 raise ValueError('provide date_finish')
-        if (not(work_lag == WorkLagEnum.custom_date)) and (not date_finish):
-            d = get_datetime_from_work_lag(work_lag)
-            values['date_finish'] = TaskDateFinish(date = d)
         return values
+
+    def on_create(self):
+        if not (self.work_lag == WorkLagEnum.custom_date):
+            d = get_datetime_from_work_lag(self.work_lag)
+            self.date_finish = TaskDateFinish(date=d)
 
 
 class LikePostResultMetrics(BaseModel):
