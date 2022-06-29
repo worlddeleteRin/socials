@@ -19,6 +19,8 @@ def watch_video_yt(
     if process_now < instances_count:
         instances_count = process_now
 
+    lgd(f'{instances_count} will be launched')
+
     q = SeleniumWatchVideoParams(
         instances_count=instances_count,
         video_link=data.video_link,
