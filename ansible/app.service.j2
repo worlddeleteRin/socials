@@ -1,0 +1,11 @@
+[Unit]
+Description = daemon for {{ app_name }}
+After = network.target
+[Service]
+User=rin
+Group=www-data
+WorkingDirectory={{document_root}}
+ExecStart={{ env_path }}/bin/gunicorn -w 3 -k uvicorn.workers.UvicornWorker --env env_mode=prod --bind unix:{{ document_root }}/{{ app_name }}.sock main:app
+
+[Install]
+WantedBy=multi-user.target

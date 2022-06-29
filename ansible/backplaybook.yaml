@@ -1,0 +1,198 @@
+- name: Deploy Socials backend
+  hosts: ubuntu_global
+  become: yes
+  vars:
+    server_name: api.socials.fast-code.ru
+    base_sites: /home/sites
+    project_folder_path: /home/sites/socials
+    document_root: /home/sites/socials/socials-backend
+    pyenv_bin: /home/ubuntu/.pyenv/bin
+    pyenv_path: ~/.pyenv/versions/3.10.2/envs
+    pyenv_python_version: 3.10.2
+    env_name: socials
+    env_path: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials/bin/python
+    app_root: socials
+    app_name: socials-backend
+    owner_name: rin
+    owner_group: www-data
+    run_tasks_params: -p vk ok -ps ok youtube --selenium-yt-threads 2
+
+  tasks:
+    - name: Create a directory with project folder if not exist
+      ansible.builtin.file:
+        path: "{{ project_folder_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy project files to the server document_root dest
+      synchronize:
+        src: "../{{app_root}}"
+        dest: "{{document_root}}"
+
+    - name: Copy staticfiles dir
+      synchronize:
+        src: "../static"
+        dest: "{{document_root}}"
+
+    - name: Copy requirements file to the server document_root dest
+      synchronize:
+        src: "../requirements.txt"
+        dest: "{{document_root}}"
+
+    - name: Copy main run file
+      synchronize:
+        src: "../main.py"
+        dest: "{{document_root}}"
+
+    - name: Copy prod env file
+      synchronize:
+        src: "../.env.prod"
+        dest: "{{document_root}}"
+
+    - name: Copy vk_core
+      synchronize:
+        src: "../vk_core"
+        dest: "{{document_root}}"
+
+    - name: Copy ok_core
+      synchronize:
+        src: "../ok_core"
+        dest: "{{document_root}}"
+
+    - name: Copy yt_core
+      synchronize:
+        src: "../yt_core"
+        dest: "{{document_root}}"
+
+    - name: Copy scripts
+      block:
+      - name: Copy hourly reset script
+        synchronize:
+          src: "../reset_hourly_rate_limits.py"
+          dest: "{{document_root}}"
+      - name: Copy daily reset script
+        synchronize:
+          src: "../reset_daily_rate_limits.py"
+          dest: "{{document_root}}"
+      - name: Copy bots awake watcher script 
+        synchronize:
+          src: "../bots_awake_watcher.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks script 
+        synchronize:
+          src: "../run_tasks.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks vk script 
+        synchronize:
+          src: "../run_tasks_vk.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks yt script 
+        synchronize:
+          src: "../run_tasks_yt.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks ok script 
+        synchronize:
+          src: "../run_tasks_ok.py"
+          dest: "{{document_root}}"
+
+
+    - name: Deal with envs
+      block:
+      - name: Source, create env, run pip install
+        shell: |
+          source /home/ubuntu/.bashrc
+          {{pyenv_bin}}/pyenv virtualenv {{ env_name }}
+          {{env_path}}/bin/pip install -r {{document_root}}/requirements.txt
+        args:
+          executable: /bin/bash
+
+      ignore_errors: yes
+      become_user: ubuntu
+
+    - name: Set ownership for repo
+      command: chown -R {{ owner_name }}:{{ owner_group }} {{ document_root }}
+
+    - name: Set ownership for base folders
+      command: chown -R {{ owner_name }}:{{ owner_group }} {{ document_root }}
+
+    - name: Set repo access rights
+      ansible.builtin.file:
+        path: "{{ base_sites }}"
+        state: directory
+        recurse: yes
+        owner: rin
+        group: www-data
+        mode: '0755'
+
+
+    - name: Apply Nginx template 
+      template:
+        src: nginx.conf.j2
+        dest: "/etc/nginx/sites-available/{{app_name}}"
+      when: 1 < 0
+      notify: Restart Nginx
+    - name: Enable Nginx app
+      file:
+        src: "/etc/nginx/sites-available/{{app_name}}"
+        dest: "/etc/nginx/sites-enabled/{{app_name}}"
+        state: link
+      when: 1 < 0
+      notify: Restart Nginx
+
+    - name: Apply app service template
+      template:
+        src: app.service.j2
+        dest: "/etc/systemd/system/{{app_name}}.service"
+    - name: Start app service
+      ansible.builtin.systemd:
+        state: started
+        name: "{{ app_name }}"
+    - name: Restart app service
+      ansible.builtin.systemd:
+        daemon-reload: yes
+        state: restarted
+        name: "{{ app_name }}"
+
+    - name: Apply social tasks service template
+      template:
+        src: social-tasks.service.j2
+        dest: "/etc/systemd/system/social-tasks.service"
+    - name: Start social tasks service
+      ansible.builtin.systemd:
+        state: started
+        name: "social-tasks"
+
+    - name: Restart app service
+      ansible.builtin.systemd:
+        daemon-reload: yes
+        state: restarted
+        name: "social-tasks"
+
+    - name: Init cron jobs
+      block:
+
+      - name: Awake watcher every ten minutes
+        ansible.builtin.cron:
+          name: awake_watcher 
+          job: "cd {{ document_root }} && {{ python_env }} bots_awake_watcher.py"
+          minute: "*/10"
+
+      - name: Reset daily rate limits
+        ansible.builtin.cron:
+          name: reset_daily_rate
+          job: "cd {{ document_root }} && {{ python_env }} reset_daily_rate_limits.py"
+          minute: "0"
+          hour: "0"
+
+      - name: Reset hourly rate limits
+        ansible.builtin.cron:
+          name: reset_hourly_rate 
+          job: "cd {{ document_root }} && {{ python_env }} reset_hourly_rate_limits.py"
+          minute: "0"
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted

@@ -1,0 +1,11 @@
+[Unit]
+Description = daemon for {{ app_name }}
+After = network.target
+[Service]
+User=rin
+Group=www-data
+WorkingDirectory={{document_root}}
+ExecStart={{env_path}}/bin/python run_tasks.py {{ run_tasks_params }}
+
+[Install]
+WantedBy=multi-user.target

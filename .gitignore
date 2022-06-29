@@ -1,4 +1,3 @@
-ansible/
 rollsberi_backend_env
 *.swp
 /secure

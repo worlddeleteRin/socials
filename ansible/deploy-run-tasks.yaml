@@ -1,0 +1,26 @@
+- name: Deploy Run tasks
+  hosts: rpi_red_local 
+  become: yes
+  vars:
+    run_tasks_params: -p vk ok -ps ok youtube --selenium-yt-threads 2
+    document_root: /home/sites/socials/socials-backend
+    env_path: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials/bin/python
+    app_name: socials-backend
+
+  tasks:
+
+    - name: Apply social tasks service template
+      template:
+        src: social-tasks.service.j2
+        dest: "/etc/systemd/system/social-tasks.service"
+    - name: Start social tasks service
+      ansible.builtin.systemd:
+        state: started
+        name: "social-tasks"
+
+    - name: Restart app service
+      ansible.builtin.systemd:
+        daemon-reload: yes
+        state: restarted
+        name: "social-tasks"

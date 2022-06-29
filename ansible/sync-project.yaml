@@ -1,0 +1,124 @@
+- name: Sync Socials backend project files
+  hosts: rpi_red_local
+  become: yes
+  vars:
+    base_sites: /home/sites
+    project_folder_path: /home/sites/socials
+    document_root: /home/sites/socials/socials-backend
+    pyenv_bin: /home/{{user}}/.pyenv/bin
+    pyenv_path: ~/.pyenv/versions/3.10.2/envs
+    pyenv_python_version: 3.10.2
+    env_name: socials
+    env_path: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials/bin/python
+    app_root: socials
+    app_name: socials-backend
+    owner_name: rin
+    owner_group: www-data
+
+  tasks:
+    - name: Create a directory with project folder if not exist
+      ansible.builtin.file:
+        path: "{{ project_folder_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy project files to the server document_root dest
+      synchronize:
+        src: "../{{app_root}}"
+        dest: "{{document_root}}"
+
+    - name: Copy staticfiles dir
+      synchronize:
+        src: "../static"
+        dest: "{{document_root}}"
+
+    - name: Copy requirements file to the server document_root dest
+      synchronize:
+        src: "../requirements.txt"
+        dest: "{{document_root}}"
+
+    - name: Copy main run file
+      synchronize:
+        src: "../main.py"
+        dest: "{{document_root}}"
+
+    - name: Copy prod env file
+      synchronize:
+        src: "../.env.prod"
+        dest: "{{document_root}}"
+
+    - name: Copy vk_core
+      synchronize:
+        src: "../vk_core"
+        dest: "{{document_root}}"
+
+    - name: Copy ok_core
+      synchronize:
+        src: "../ok_core"
+        dest: "{{document_root}}"
+
+    - name: Copy yt_core
+      synchronize:
+        src: "../yt_core"
+        dest: "{{document_root}}"
+
+    - name: Copy scripts
+      block:
+      - name: Copy hourly reset script
+        synchronize:
+          src: "../reset_hourly_rate_limits.py"
+          dest: "{{document_root}}"
+      - name: Copy daily reset script
+        synchronize:
+          src: "../reset_daily_rate_limits.py"
+          dest: "{{document_root}}"
+      - name: Copy bots awake watcher script 
+        synchronize:
+          src: "../bots_awake_watcher.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks script 
+        synchronize:
+          src: "../run_tasks.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks vk script 
+        synchronize:
+          src: "../run_tasks_vk.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks yt script 
+        synchronize:
+          src: "../run_tasks_yt.py"
+          dest: "{{document_root}}"
+      - name: Copy bots run tasks ok script 
+        synchronize:
+          src: "../run_tasks_ok.py"
+          dest: "{{document_root}}"
+
+
+    - name: Deal with envs
+      block:
+      - name: Source, create env, run pip install
+        shell: |
+          source /home/{{user}}/.bashrc
+          {{pyenv_bin}}/pyenv virtualenv {{ env_name }}
+          {{env_path}}/bin/pip install -r {{document_root}}/requirements.txt
+        args:
+          executable: /bin/bash
+
+      ignore_errors: yes
+      become_user: "{{user}}"
+
+    - name: Set ownership for repo
+      command: chown -R {{ owner_name }}:{{ owner_group }} {{ document_root }}
+
+    - name: Set ownership for base folders
+      command: chown -R {{ owner_name }}:{{ owner_group }} {{ document_root }}
+
+    - name: Set repo access rights
+      ansible.builtin.file:
+        path: "{{ base_sites }}"
+        state: directory
+        recurse: yes
+        owner: rin
+        group: www-data
+        mode: '0755'

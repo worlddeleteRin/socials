@@ -1,0 +1,11 @@
+server {
+
+  server_name {{ server_name }};
+
+  location = /favicon.ico {access_log off; log_not_found off; }
+
+  location / {
+    include proxy_params;
+    proxy_pass http://unix:{{document_root}}/{{app_name}}.sock;
+  }
+}

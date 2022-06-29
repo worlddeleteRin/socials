@@ -1,0 +1,75 @@
+- name: Deploy backend API
+  hosts: rpi_red_local 
+  become: yes
+  vars:
+    server_name: api.socials.fast-code.ru
+    base_sites: /home/sites
+    project_folder_path: /home/sites/socials
+    document_root: /home/sites/socials/socials-backend
+    pyenv_bin: /home/{{user}}/.pyenv/bin
+    pyenv_path: ~/.pyenv/versions/3.10.2/envs
+    pyenv_python_version: 3.10.2
+    env_name: socials
+    env_path: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials/bin/python
+    app_root: socials
+    app_name: socials-backend
+    owner_name: rin
+    owner_group: www-data
+
+  tasks:
+    - name: Apply Nginx template 
+      template:
+        src: nginx.conf.j2
+        dest: "/etc/nginx/sites-available/{{app_name}}"
+      when: 1 < 0
+      notify: Restart Nginx
+    - name: Enable Nginx app
+      file:
+        src: "/etc/nginx/sites-available/{{app_name}}"
+        dest: "/etc/nginx/sites-enabled/{{app_name}}"
+        state: link
+      when: 1 < 0
+      notify: Restart Nginx
+
+    - name: Apply app service template
+      template:
+        src: app.service.j2
+        dest: "/etc/systemd/system/{{app_name}}.service"
+    - name: Start app service
+      ansible.builtin.systemd:
+        state: started
+        name: "{{ app_name }}"
+    - name: Restart app service
+      ansible.builtin.systemd:
+        daemon-reload: yes
+        state: restarted
+        name: "{{ app_name }}"
+
+    - name: Init cron jobs
+      block:
+
+      - name: Awake watcher every ten minutes
+        ansible.builtin.cron:
+          name: awake_watcher 
+          job: "cd {{ document_root }} && {{ python_env }} bots_awake_watcher.py"
+          minute: "*/10"
+
+      - name: Reset daily rate limits
+        ansible.builtin.cron:
+          name: reset_daily_rate
+          job: "cd {{ document_root }} && {{ python_env }} reset_daily_rate_limits.py"
+          minute: "0"
+          hour: "0"
+
+      - name: Reset hourly rate limits
+        ansible.builtin.cron:
+          name: reset_hourly_rate 
+          job: "cd {{ document_root }} && {{ python_env }} reset_hourly_rate_limits.py"
+          minute: "0"
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
