@@ -103,6 +103,7 @@ if __name__ == '__main__':
     selenium_platforms: list[Thread] = []
     if run_platforms_selenium and len(run_platforms_selenium) > 0:
         if PlatformEnum.yt in run_platforms_selenium:
+            lgd(f'** start {len(str(selenium_yt_threads))} youtube threads **')
             for i in range(0,selenium_yt_threads):
                 yt_tasks = YtSeleniumTasksThread()
                 selenium_platforms.append(yt_tasks)
