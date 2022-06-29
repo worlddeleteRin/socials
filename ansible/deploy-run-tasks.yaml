@@ -29,7 +29,7 @@
   hosts: rpi_green_local
   become: yes
   vars:
-    run_tasks_params: -ps youtube --selenium-yt-threads 2
+    run_tasks_params: -ps youtube --selenium-yt-threads 1
     document_root: /home/sites/socials/socials-backend
     env_path: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials
     python_env: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials/bin/python
