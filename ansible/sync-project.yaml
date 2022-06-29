@@ -1,5 +1,5 @@
 - name: Sync Socials backend project files
-  hosts: rpi_red_local
+  hosts: rpi_red_local,rpi_green_local
   become: yes
   vars:
     base_sites: /home/sites

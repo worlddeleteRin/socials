@@ -1,11 +1,38 @@
-- name: Deploy Run tasks
-  hosts: rpi_red_local 
+- name: Deploy Run tasks on rpi_red_local
+  hosts: rpi_red_local
   become: yes
   vars:
-    run_tasks_params: -p vk ok -ps ok youtube --selenium-yt-threads 2
+    run_tasks_params: -p vk ok -ps ok
     document_root: /home/sites/socials/socials-backend
-    env_path: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials
-    python_env: /home/ubuntu/.pyenv/versions/3.10.2/envs/socials/bin/python
+    env_path: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials/bin/python
+    app_name: socials-backend
+
+  tasks:
+
+    - name: Apply social tasks service template
+      template:
+        src: social-tasks.service.j2
+        dest: "/etc/systemd/system/social-tasks.service"
+    - name: Start social tasks service
+      ansible.builtin.systemd:
+        state: started
+        name: "social-tasks"
+
+    - name: Restart app service
+      ansible.builtin.systemd:
+        daemon-reload: yes
+        state: restarted
+        name: "social-tasks"
+
+- name: Deploy Run tasks on rpi_green_local
+  hosts: rpi_green_local
+  become: yes
+  vars:
+    run_tasks_params: -ps youtube --selenium-yt-threads 2
+    document_root: /home/sites/socials/socials-backend
+    env_path: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials
+    python_env: /home/{{user}}/.pyenv/versions/3.10.2/envs/socials/bin/python
     app_name: socials-backend
 
   tasks:
